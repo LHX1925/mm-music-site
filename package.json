@@ -1,0 +1,88 @@
+{
+  "name": "mengmeng-music",
+  "version": "1.2.1",
+  "private": true,
+  "description": "萌萌音乐 - 支持酷狗音乐 / 酷狗音乐概念版的桌面音乐播放器",
+  "author": "LHX",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "electron .",
+    "build": "vite build",
+    "dist": "vite build && electron-builder --win",
+    "dist:portable": "vite build && electron-builder --win portable",
+    "preview": "vite preview",
+    "icon": "node scripts/make-icon.mjs",
+    "art": "node scripts/make-installer-art.mjs"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "element-plus": "^2.8.8",
+    "pinia": "^2.2.6",
+    "vue": "^3.5.13",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "jimp": "^0.22.12",
+    "vite": "^5.4.11"
+  },
+  "build": {
+    "appId": "com.lhx.mengmeng.music",
+    "productName": "萌萌音乐",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../KuGouMusicApi-1.6.3",
+        "to": "kugou-api",
+        "filter": [
+          "**/*",
+          "!node_modules/.cache/**"
+        ]
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeader": "build/installerHeader.bmp",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp",
+      "shortcutName": "萌萌音乐",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "language": "2052",
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "unicode": true,
+      "artifactName": "萌萌音乐-${version}-安装包.exe"
+    },
+    "portable": {
+      "artifactName": "萌萌音乐-${version}-便携版.exe"
+    }
+  }
+}

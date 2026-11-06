@@ -1,0 +1,556 @@
+:root {
+  --kg-accent: #00d26a;
+  /* 主色调的 RGB 分量，用于 rgba(var(--kg-accent-rgb), .3) 这类半透明阴影/描边，
+     这样主题色一变，阴影和光晕也跟着变，不会再留一截写死的绿色 */
+  --kg-accent-rgb: 0, 210, 106;
+  --kg-accent-dark: #00b25b;
+  --kg-accent-soft: #e7fbf0;
+  --kg-bg: #ffffff;
+  --kg-surface: #ffffff;
+  --kg-side: #f7f7f9;
+  --kg-panel: #f4f5f7;
+  --kg-panel-2: #fafafb;
+  --kg-card: #ffffff;
+  --kg-text: #14161a;
+  --kg-text-2: #787f8c;
+  --kg-text-3: #a8aeba;
+  --kg-line: #edeef1;
+  --kg-line-2: #e5e7eb;
+  --kg-hover: #f2f3f5;
+  --kg-gold: #b98b3d;
+  --kg-gold-soft: #fdf6e7;
+  --kg-gold-line: #ecd9b0;
+  --kg-radius: 10px;
+  --kg-shadow: 0 8px 30px rgba(15, 20, 30, 0.08);
+  --kg-translucent: rgba(255, 255, 255, 0.72);
+  --kg-scroll: #dcdfe5;
+  --kg-scroll-hover: #c4c9d1;
+  --el-color-primary: #00d26a;
+  --el-font-family: inherit;
+}
+
+/* 深色外观 */
+[data-theme='dark'] {
+  --kg-bg: #0f1014;
+  --kg-surface: #17191f;
+  --kg-side: #121419;
+  --kg-panel: #1d2028;
+  --kg-panel-2: #191c23;
+  --kg-card: #1a1d24;
+  --kg-text: #e9ebf0;
+  --kg-text-2: #a2a8b4;
+  --kg-text-3: #6f7684;
+  --kg-line: #252932;
+  --kg-line-2: #2f3440;
+  --kg-hover: #23262f;
+  --kg-accent-soft: rgba(var(--kg-accent-rgb), 0.15);
+  --kg-accent-dark: #35d98a;
+  --kg-gold: #d9ae6a;
+  --kg-gold-soft: rgba(217, 174, 106, 0.14);
+  --kg-gold-line: rgba(217, 174, 106, 0.32);
+  --kg-translucent: rgba(22, 24, 30, 0.72);
+  --kg-shadow: 0 10px 34px rgba(0, 0, 0, 0.45);
+  --kg-scroll: #333844;
+  --kg-scroll-hover: #454b59;
+  --el-bg-color: #1a1d24;
+  --el-bg-color-overlay: #1f222a;
+  --el-text-color-primary: #e9ebf0;
+  --el-text-color-regular: #c3c9d4;
+  --el-text-color-placeholder: #6f7684;
+  --el-border-color: #2f3440;
+  --el-border-color-light: #252932;
+  --el-fill-color-blank: #17191f;
+  --el-fill-color-light: #23262f;
+  --el-fill-color-lighter: #1d2028;
+  --el-mask-color: rgba(0, 0, 0, 0.6);
+}
+
+/* 字体设置 */
+[data-font='serif'] body {
+  font-family: 'Songti SC', 'Noto Serif SC', 'SimSun', serif;
+}
+[data-font='round'] body {
+  font-family: 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei UI', sans-serif;
+  font-weight: 500;
+}
+[data-font='mono'] body {
+  font-family: 'JetBrains Mono', 'Consolas', 'PingFang SC', monospace;
+}
+
+/* ------------------------------------------------------------------ */
+/* 液态玻璃                                                            */
+/* 思路：玻璃模式下把所有「表面色」换成半透明值，再对窗口本身做一次背景  */
+/* 模糊，这样既不会出现大片纯白，深色主题也不会翻白。                    */
+/* ------------------------------------------------------------------ */
+[data-glass='on'] {
+  --kg-bg: rgba(255, 255, 255, 0.34);
+  --kg-surface: rgba(255, 255, 255, 0.58);
+  --kg-side: rgba(255, 255, 255, 0.44);
+  --kg-panel: rgba(255, 255, 255, 0.46);
+  --kg-panel-2: rgba(255, 255, 255, 0.4);
+  --kg-card: rgba(255, 255, 255, 0.54);
+  --kg-hover: rgba(255, 255, 255, 0.52);
+  --kg-line: rgba(255, 255, 255, 0.6);
+  --kg-line-2: rgba(150, 162, 178, 0.28);
+  --kg-translucent: rgba(255, 255, 255, 0.56);
+  --kg-shadow: 0 10px 34px rgba(20, 30, 48, 0.14);
+}
+[data-glass='on'][data-theme='dark'] {
+  --kg-bg: rgba(15, 17, 22, 0.5);
+  --kg-surface: rgba(28, 31, 39, 0.68);
+  --kg-side: rgba(18, 20, 26, 0.55);
+  --kg-panel: rgba(36, 40, 50, 0.52);
+  --kg-panel-2: rgba(30, 33, 42, 0.48);
+  --kg-card: rgba(32, 36, 45, 0.6);
+  --kg-hover: rgba(52, 58, 71, 0.48);
+  --kg-line: rgba(255, 255, 255, 0.07);
+  --kg-line-2: rgba(255, 255, 255, 0.11);
+  --kg-translucent: rgba(24, 27, 34, 0.66);
+  --kg-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+/* 玻璃基底：给毛玻璃一层稳定的渐变背景，避免透出桌面导致忽明忽暗 */
+.glass-base {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 620px at 6% -6%, #dcfaee 0%, rgba(220, 250, 238, 0) 58%),
+    radial-gradient(820px 560px at 96% 2%, #e2edff 0%, rgba(226, 237, 255, 0) 55%),
+    radial-gradient(760px 700px at 72% 104%, #f2e9ff 0%, rgba(242, 233, 255, 0) 58%),
+    linear-gradient(158deg, #f6f9fb, #eef3f8 60%, #eef2f6);
+}
+[data-theme='dark'] .glass-base {
+  background:
+    radial-gradient(900px 620px at 6% -6%, rgba(var(--kg-accent-rgb), 0.16) 0%, rgba(var(--kg-accent-rgb), 0) 58%),
+    radial-gradient(820px 560px at 96% 2%, rgba(64, 120, 255, 0.16) 0%, rgba(64, 120, 255, 0) 55%),
+    radial-gradient(760px 700px at 72% 104%, rgba(150, 100, 255, 0.14) 0%, rgba(150, 100, 255, 0) 58%),
+    linear-gradient(158deg, #0d1015, #12151c 60%, #0f1218);
+}
+
+/* 窗口本体：玻璃模式下由渐变基底承载背景，窗口本身保持透明 */
+[data-glass='on'] .app-window {
+  background: transparent !important;
+}
+[data-glass='on'][data-theme='dark'] .app-window {
+  background: transparent !important;
+}
+/* 有自定义背景图时交给背景层，窗口本身保持透明 */
+[data-glass='on'][data-bg='on'] .app-window {
+  background: transparent !important;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 玻璃面板：侧栏 / 标题栏 / 播放条 / 卡片 */
+[data-glass='on'] .sidebar,
+[data-glass='on'] .titlebar,
+[data-glass='on'] .playerbar {
+  background: var(--kg-translucent) !important;
+  backdrop-filter: blur(var(--kg-glass-blur, 18px)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--kg-glass-blur, 18px)) saturate(1.6);
+}
+[data-glass='on'] .set-card,
+[data-glass='on'] .glass-surface,
+[data-glass='on'] .rank-card,
+[data-glass='on'] .detail-head,
+[data-glass='on'] .lib-page .card,
+[data-glass='on'] .account-card,
+[data-glass='on'] .about-card {
+  background: var(--kg-surface) !important;
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
+}
+/* 弹窗与浮层跟随玻璃主题 */
+[data-glass='on'] .el-dialog,
+[data-glass='on'] .el-message,
+[data-glass='on'] .el-popover,
+[data-glass='on'] .el-dropdown-menu {
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+[data-glass='on'] .el-dialog {
+  background: var(--kg-surface) !important;
+}
+
+/* 自定义背景（图片/视频） */
+[data-bg='on'] .app-window,
+[data-bg='on'] .workspace {
+  background: transparent !important;
+}
+/* 内容区薄薄一层可读性遮罩：既能看到背景，又保证文字对比度（不再是纯白） */
+[data-bg='on'] .page-host {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.66));
+}
+[data-theme='dark'][data-bg='on'] .page-host {
+  background: linear-gradient(180deg, rgba(10, 12, 17, 0.5), rgba(10, 12, 17, 0.68));
+}
+[data-bg='on'] .sidebar,
+[data-bg='on'] .titlebar,
+[data-bg='on'] .playerbar {
+  background: var(--kg-translucent) !important;
+  backdrop-filter: blur(var(--kg-glass-blur, 22px)) saturate(1.5);
+  -webkit-backdrop-filter: blur(var(--kg-glass-blur, 22px)) saturate(1.5);
+}
+[data-bg='on'] .rank-card,
+[data-bg='on'] .set-card,
+[data-bg='on'] .detail-head,
+[data-bg='on'] .lib-page .card,
+[data-bg='on'] .account-card,
+[data-bg='on'] .about-card {
+  background: var(--kg-card) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+/* ------------------------------------------------------------------ */
+/* 浅色 + 自定义背景（尤其视频）：视频会透上来把面板糊成一片灰白，      */
+/* 这里把面板做成接近实色的白，只保留一层很淡的透明感，保证文字对比度。 */
+/* ------------------------------------------------------------------ */
+[data-bg='on']:not([data-theme='dark']) .page-host {
+  /* 上下两段透明度接近，滚动时不会出现「上半透、下半白」的分层感 */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(252, 253, 255, 0.88)) !important;
+}
+/* 浅色下背景兜底色不该是近黑，否则视频加载瞬间会闪一块黑 */
+[data-bg='on']:not([data-theme='dark']) .app-bg {
+  background: #eef1f6;
+}
+[data-bg='on']:not([data-theme='dark']) .sidebar,
+[data-bg='on']:not([data-theme='dark']) .titlebar,
+[data-bg='on']:not([data-theme='dark']) .playerbar {
+  background: rgba(252, 253, 255, 0.9) !important;
+  backdrop-filter: blur(20px) saturate(1.05);
+  -webkit-backdrop-filter: blur(20px) saturate(1.05);
+  border-color: rgba(20, 24, 32, 0.06);
+}
+[data-bg='on']:not([data-theme='dark']) .rank-card,
+[data-bg='on']:not([data-theme='dark']) .set-card,
+[data-bg='on']:not([data-theme='dark']) .detail-head,
+[data-bg='on']:not([data-theme='dark']) .lib-page .card,
+[data-bg='on']:not([data-theme='dark']) .account-card,
+[data-bg='on']:not([data-theme='dark']) .about-card,
+[data-bg='on']:not([data-theme='dark']) .glass-surface {
+  background: rgba(255, 255, 255, 0.93) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+/* 视频背景每帧都在重算毛玻璃，浅色下会糊成一片；直接关掉模糊只看实色 */
+[data-bgtype='video']:not([data-theme='dark']) .sidebar,
+[data-bgtype='video']:not([data-theme='dark']) .titlebar,
+[data-bgtype='video']:not([data-theme='dark']) .playerbar,
+[data-bgtype='video']:not([data-theme='dark']) .rank-card,
+[data-bgtype='video']:not([data-theme='dark']) .set-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+[data-bg='on'] .app-window {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+[data-theme='dark'][data-bg='on'] .sidebar,
+[data-theme='dark'][data-bg='on'] .titlebar,
+[data-theme='dark'][data-bg='on'] .playerbar {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: transparent;
+  color: var(--kg-text);
+  font-family: 'PingFang SC', 'HarmonyOS Sans SC', 'Microsoft YaHei', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
+}
+
+input {
+  font-family: inherit;
+  outline: none;
+  border: 0;
+  background: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  display: block;
+}
+
+/* 滚动条 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--kg-scroll);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--kg-scroll-hover);
+  background-clip: content-box;
+}
+
+/* 页面滚动容器：统一由全局提供，避免各页面各自定义导致部分页面无法滚动 */
+.page-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+.page-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* 返回顶部按钮：用动态柠檬图（lemon.gif）做按钮本体 */
+.back-top {
+  position: absolute;
+  right: 22px;
+  bottom: 96px;
+  z-index: 30;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  padding: 0;
+  overflow: visible;
+  filter: drop-shadow(0 8px 16px rgba(15, 20, 30, 0.2));
+  transition: transform 0.16s ease, filter 0.16s ease;
+}
+.back-top img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* 不要圆形裁切，否则 lemon.gif 四角会被切掉，看着像被阉割 */
+  border-radius: 0;
+}
+.back-top:hover {
+  transform: translateY(-3px) scale(1.06);
+  filter: drop-shadow(0 10px 18px rgba(15, 20, 30, 0.26));
+}
+
+/* 窗口圆角：四个角所在的面板各自收边，双重保险 */
+.sidebar {
+  border-radius: 12px 0 0 12px;
+}
+.titlebar {
+  border-radius: 0 12px 0 0;
+}
+.playerbar {
+  border-radius: 0 0 12px 0;
+}
+.app-window.maximized .sidebar,
+.app-window.maximized .titlebar,
+.app-window.maximized .playerbar {
+  border-radius: 0;
+}
+
+/* 通用文本工具 */
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hover-underline:hover {
+  color: var(--kg-accent-dark);
+}
+
+.text-2 {
+  color: var(--kg-text-2);
+}
+.text-3 {
+  color: var(--kg-text-3);
+}
+
+/* 精品母带等金色标签 */
+.badge-gold {
+  display: inline-flex;
+  align-items: center;
+  height: 15px;
+  padding: 0 3px;
+  border: 1px solid var(--kg-gold-line);
+  border-radius: 3px;
+  color: var(--kg-gold);
+  background: var(--kg-gold-soft);
+  font-size: 10px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.badge-vip {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid var(--kg-gold-line);
+  background: var(--kg-gold-soft);
+  color: var(--kg-gold);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  flex: 0 0 auto;
+}
+.badge-vip.solid {
+  background: linear-gradient(135deg, #ffe6b0, #f6c678);
+  border-color: transparent;
+  color: #7a4d00;
+}
+.badge-vip.green {
+  background: linear-gradient(135deg, #d6fbe6, #9ff0c2);
+  border-color: transparent;
+  color: #05713a;
+}
+
+/* 歌曲角标：原创 / VIP / MV 三色区分，全站列表、播放条、网格卡片共用 */
+.badge-orig {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(var(--kg-accent-rgb), 0.4);
+  background: rgba(var(--kg-accent-rgb), 0.14);
+  color: var(--kg-accent-dark);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  flex: 0 0 auto;
+}
+.mv-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(47, 128, 237, 0.38);
+  background: rgba(47, 128, 237, 0.1);
+  color: #2b74d8;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+[data-theme='dark'] .mv-tag {
+  color: #7cb0f5;
+  border-color: rgba(120, 175, 245, 0.4);
+  background: rgba(80, 140, 220, 0.16);
+}
+
+/* Element Plus 细节微调 */
+.el-popper.is-light {
+  border-radius: 10px !important;
+  border-color: var(--kg-line) !important;
+  box-shadow: 0 10px 30px rgba(20, 24, 32, 0.12) !important;
+}
+.el-message {
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+  border-color: var(--kg-line) !important;
+}
+.el-message {
+  background: var(--kg-surface) !important;
+  color: var(--kg-text) !important;
+}
+.el-message--success {
+  background: var(--kg-surface) !important;
+}
+.el-dialog {
+  border-radius: 14px !important;
+  overflow: hidden;
+}
+.el-dialog__header {
+  padding: 18px 22px 10px !important;
+  margin: 0 !important;
+}
+.el-dialog__title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+.el-dialog__body {
+  padding: 6px 22px 20px !important;
+}
+.el-tabs__item {
+  font-size: 13px !important;
+}
+.el-tabs__nav-wrap::after {
+  height: 1px !important;
+  background: var(--kg-line) !important;
+}
+.el-tag {
+  border-radius: 4px !important;
+}
+.el-slider__runway {
+  height: 4px !important;
+  background: var(--kg-line-2) !important;
+}
+.el-slider__bar {
+  height: 4px !important;
+  background: var(--kg-accent) !important;
+}
+.el-slider__button {
+  width: 10px !important;
+  height: 10px !important;
+  border-width: 2px !important;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
