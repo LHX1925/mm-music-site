@@ -2,7 +2,7 @@
  * KuGouMusicApi 接口封装
  * 路由规则：module/xxx_yyy.js -> /xxx/yyy
  */
-import { get, post, request } from './http';
+import { ApiError, get, post, request } from './http';
 import { normalizeAlbum, normalizeArtist, normalizePlaylist, normalizeRank, normalizeSong, normalizeSongs } from './normalize';
 
 /** 在响应中寻找第一个数组字段 */
@@ -263,14 +263,42 @@ export async function songBarrageCount(hash) {
   return Number(body?.data?.count || 0);
 }
 
+/**
+ * 听歌识曲：body 为 8kHz 单声道 16bit PCM（application/octet-stream）
+ * 接口要求见 KuGouMusicApi `module/audio_match.js`
+ */
 export async function audioMatch(arrayBuffer) {
   const { baseUrl } = await import('./http');
-  const res = await fetch(`${baseUrl()}/audio/match`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/octet-stream' },
-    body: arrayBuffer,
-  });
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  let res;
+  try {
+    res = await fetch(`${baseUrl()}/audio/match?t=${Date.now()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream' },
+      body: arrayBuffer,
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+  } catch (e) {
+    clearTimeout(timer);
+    if (e.name === 'AbortError') throw new ApiError('识别超时了，检查一下网络再试', null);
+    throw new ApiError('连不上本地识别服务，请确认 API 服务已启动', null);
+  }
+  clearTimeout(timer);
+
+  const text = await res.text();
+  let body = null;
+  try {
+    body = text ? JSON.parse(text) : null;
+  } catch {
+    body = null;
+  }
+  if (res.status >= 500) {
+    throw new ApiError(body?.error || `识别服务异常（${res.status}）`, body);
+  }
+  if (!body) throw new ApiError('识别服务没有返回结果，请重试', null);
+  return body;
 }
 
 /* ------------------------------- 歌词/评论 ------------------------------- */
@@ -410,8 +438,40 @@ export async function effectPlaylists() {
 
 export const playlistCreate = (data) => post('/playlist/add', data);
 export const playlistDelete = (data) => post('/playlist/del', data);
-export const playlistAddTracks = (data) => post('/playlist/tracks/add', data);
-export const playlistDelTracks = (data) => post('/playlist/tracks/del', data);
+
+/**
+ * 添加歌曲到自建歌单。
+ *
+ * KuGouMusicApi 的模块从 query 读取 listid / data，而不是从 POST body 的
+ * songs 数组读取。data 的每一项必须是「歌名|hash|专辑ID|mixsongid」，
+ * 否则模块会把空字符串转换成一条空歌曲，官方网关最终返回 502。
+ */
+export function playlistCloudId(playlist = {}) {
+  const raw = playlist.raw || {};
+  return String(raw.listid || raw.list_create_listid || playlist.cloudListid || playlist.listid || '').trim();
+}
+
+export function playlistAddTracks({ listid, songs }) {
+  const list = Array.isArray(songs) ? songs : [];
+  if (!listid) throw new ApiError('目标歌单 ID 无效，请重新获取歌单后重试', null);
+  if (list.some((song) => String(song?.hash || '').startsWith('local_'))) {
+    throw new ApiError('本地音乐无法添加到酷狗云端歌单', null);
+  }
+  const valid = list.filter((song) => String(song?.hash || '').trim());
+  if (!valid.length) throw new ApiError('所选歌曲缺少有效的歌曲 hash，无法添加到云端歌单', null);
+
+  const data = valid.map((song) => {
+    const name = String(song.name || '未知歌曲').replace(/[|,]/g, ' ').trim() || '未知歌曲';
+    const hash = String(song.hash).trim().toUpperCase();
+    const albumId = Number(song.albumId || song.album_id || 0) || 0;
+    const albumAudioId = Number(song.album_audio_id || song.albumAudioId || 0) || 0;
+    return [name, hash, albumId, albumAudioId].join('|');
+  });
+
+  return post('/playlist/tracks/add', {}, { listid: String(listid), data: data.join(',') }, { nocache: true });
+}
+
+export const playlistDelTracks = ({ listid, fileids }) => post('/playlist/tracks/del', {}, { listid, fileids });
 export const playlistSort = (data) => post('/playlist/sort', data);
 export const playlistUpdate = (data) => post('/playlist/update', data);
 

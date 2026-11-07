@@ -17,7 +17,12 @@ const title = computed(() => (songs.value.length > 1 ? `添加 ${songs.value.len
 async function confirm() {
   if (!selected.value) return ElMessage.warning('请选择目标歌单');
   try {
-    await library.addSongsToPlaylist(selected.value, songs.value.map((s) => ({ hash: s.hash, album_audio_id: s.albumAudioId })));
+    await library.addSongsToPlaylist(selected.value, songs.value.map((s) => ({
+      name: s.name || s.raw?.SongName || s.raw?.songname || s.raw?.filename || s.raw?.FileName || '',
+      hash: s.hash,
+      albumId: s.albumId || s.raw?.AlbumID || s.raw?.album_id || 0,
+      album_audio_id: s.albumAudioId || s.raw?.MixSongID || s.raw?.mixsongid || s.raw?.album_audio_id || 0,
+    })));
     ElMessage.success('已添加到歌单');
     ui.showAddToPlaylist = false;
     selected.value = '';

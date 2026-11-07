@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { ElMessage } from 'element-plus';
 import {
   playlistAddTracks,
+  playlistCloudId,
   playlistCreate,
   playlistDelete,
   playlistDelTracks,
@@ -220,13 +221,21 @@ export const useLibraryStore = defineStore('library', () => {
   }
 
   async function addSongsToPlaylist(listid, songs) {
-    const res = await playlistAddTracks({ listid, songs });
+    if (!user.isLogin) throw new Error('请先登录后再添加到歌单');
+    const playlist = userPlaylists.value.find((p) => String(p.id) === String(listid));
+    if (!playlist) throw new Error('目标歌单不存在，请刷新歌单后重试');
+    // 添加接口要求数字 listid，不能用 global_collection_id（gid 格式）。
+    const cloudListid = playlistCloudId(playlist);
+    if (!cloudListid) throw new Error('目标歌单 ID 无效，请重新获取歌单后重试');
+    const res = await playlistAddTracks({ listid: cloudListid, songs });
     await loadUserPlaylists();
     return res;
   }
 
   async function removeSongFromPlaylist(listid, song) {
-    await playlistDelTracks({ listid, songs: [{ hash: song.hash, album_audio_id: song.albumAudioId }] });
+    const fileid = song.fileId || song.fileid || song.raw?.fileid || song.raw?.file_id || '';
+    if (!fileid) throw new Error('这首歌曲缺少云端文件 ID，请刷新歌单后再试');
+    await playlistDelTracks({ listid, fileids: String(fileid) });
     return true;
   }
 

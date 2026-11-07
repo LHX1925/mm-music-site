@@ -8,7 +8,7 @@
 
 酷狗标准版 / 概念版双平台并行 · 逐字歌词 · 桌面 & 任务栏歌词 · 主题换肤 · MV 小窗 · 在线更新
 
-[![版本](https://img.shields.io/badge/版本-1.2.1-3b82f6)](https://moin.shrtxs.cn/changelog.php)
+[![版本](https://img.shields.io/badge/版本-1.2.2-3b82f6)](https://moin.shrtxs.cn/changelog.php)
 [![平台](https://img.shields.io/badge/平台-Windows%2010%20%2F%2011-3b82f6)](https://moin.shrtxs.cn/download.php)
 [![技术栈](https://img.shields.io/badge/Vue%203-Electron%2033-facc15)](https://moin.shrtxs.cn/development.php)
 [![License](https://img.shields.io/badge/License-MIT-facc15)](LICENSE)
@@ -44,7 +44,7 @@
 从 v1.2.0 起，客户端内置 **在线更新**：启动时静默检查新版本，弹窗提示、显示下载进度、
 一键安装重启；配套官网同时充当更新服务器，作者在后台发布版本即可推送给所有用户。
 
-* 当前版本：**v1.2.1**（2026-11-07）
+* 当前版本：**v1.2.2**（2026-11-07）— 修复添加音乐到歌单时接口报 502 的问题，详见 [版本更新详情](RELEASE_NOTES.md)
 * 运行平台：**Windows 10 / 11 · 64 位**
 * 项目主页：**<https://moin.shrtxs.cn/>**
 * 作者：**LHX · 宝藏水仙**
@@ -199,8 +199,8 @@ npm run art
 
 | 产物 | 说明 |
 | --- | --- |
-| `萌萌音乐-1.2.1-安装包.exe` | NSIS 中文安装程序：自选安装目录、桌面 / 开始菜单快捷方式、卸载保留用户数据 |
-| `萌萌音乐-1.2.1-便携版.exe` | 免安装单文件，首次启动会解压到临时目录（约 60~100 秒） |
+| `萌萌音乐-1.2.2-安装包.exe` | NSIS 中文安装程序：自选安装目录、桌面 / 开始菜单快捷方式、卸载保留用户数据 |
+| `萌萌音乐-1.2.2-便携版.exe` | 免安装单文件，首次启动会解压到临时目录（约 60~100 秒） |
 
 > 也可以直接在 **[项目主页下载](https://moin.shrtxs.cn/download.php)** 已打包好的版本。
 
@@ -227,7 +227,7 @@ npm run art
 客户端启动
    │  延时静默检查（不阻塞启动）
    ▼
-GET {更新站}/api.php?action=check&version=1.2.1&channel=stable
+GET {更新站}/api.php?action=check&version=1.2.2&channel=stable
    │
    ▼
 后台返回：hasUpdate / latest(version, notes, url, portableUrl, size, force)

@@ -7,7 +7,7 @@
  * 3. 提供静态资源服务与本地音乐流媒体服务（支持 Range 断点播放）
  * 4. 下载管理、本地文件扫描、系统能力桥接
  */
-const { app, BrowserWindow, ipcMain, shell, dialog, protocol, net, Tray, Menu, powerSaveBlocker, globalShortcut, nativeImage, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, dialog, protocol, net, Tray, Menu, powerSaveBlocker, globalShortcut, nativeImage, screen, session, desktopCapturer } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -1005,6 +1005,42 @@ async function createWindow() {
   return mainWindow;
 }
 
+/**
+ * 听歌识曲 / 系统内录所需的媒体权限
+ *
+ * - 渲染进程用 getUserMedia 取麦克风，需要放行 media 权限
+ * - 「系统声音」走 getDisplayMedia：这里直接返回主屏 + 系统回环音频，
+ *   省掉选屏弹窗；Windows 上 loopback 才能录到电脑正在播放的声音
+ */
+function setupMediaCapture() {
+  const ses = session.defaultSession;
+  try {
+    ses.setPermissionRequestHandler((_wc, permission, callback) => {
+      const allow = ['media', 'display-capture', 'speaker-selection', 'audioCapture', 'videoCapture', 'fullscreen', 'clipboard-sanitized-write'];
+      callback(allow.includes(permission));
+    });
+    ses.setPermissionCheckHandler((_wc, permission) => {
+      const allow = ['media', 'display-capture', 'speaker-selection', 'fullscreen', 'clipboard-sanitized-write'];
+      return allow.includes(permission);
+    });
+    ses.setDisplayMediaRequestHandler(async (_request, callback) => {
+      try {
+        const sources = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 0, height: 0 } });
+        if (!sources.length) {
+          callback({});
+          return;
+        }
+        callback({ video: sources[0], audio: 'loopback' });
+      } catch (e) {
+        console.warn('[capture] display media:', e.message);
+        callback({});
+      }
+    });
+  } catch (e) {
+    console.warn('[capture] setup:', e.message);
+  }
+}
+
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 
 // 分辨率/任务栏变化时，任务栏歌词重新贴边
@@ -1038,6 +1074,7 @@ if (!gotLock) {
   app.whenReady().then(async () => {
     apiDir = resolveApiDir();
     config = readConfig();
+    setupMediaCapture();
     // 在线更新：注册 IPC（window 加载前完成），并在启动后静默检查一次
     updater.register({
       getConfig: () => config,
