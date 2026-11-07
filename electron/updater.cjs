@@ -23,14 +23,17 @@ let cfgRef = null;
 let liveCfg = () => cfgRef || {};
 let saveCfg = () => {};
 let getWin = () => null;
+/** 本次运行中真正连通的站点，后续请求优先用它，避免每次都等失效域名超时 */
+let preferredOrigin = '';
 
 /* ------------------------------ 工具 ------------------------------ */
 
-/** 候选站点地址，用户自定义的优先 */
+/** 候选站点地址，用户自定义的优先，其次是本次已连通的站点 */
 function origins() {
   const list = [];
   const custom = String(liveCfg()?.updateOrigin || '').trim();
   if (/^https?:\/\/[^\s]+$/i.test(custom)) list.push(custom.replace(/\/+$/, ''));
+  if (preferredOrigin && !list.includes(preferredOrigin)) list.push(preferredOrigin);
   for (const o of DEFAULT_ORIGINS) if (!list.includes(o)) list.push(o);
   return list;
 }
@@ -162,6 +165,7 @@ async function checkUpdate({ channel = 'stable', timeout } = {}) {
     }
     const data = json?.data || {};
     const latest = data.latest || null;
+    preferredOrigin = o;
     const hasUpdate = Boolean(data.hasUpdate) || (latest && cmpVersion(latest.version, current) > 0);
     return {
       ok: true,
@@ -195,38 +199,61 @@ function updateDir() {
   return path.join(app.getPath('temp'), 'mm-music-update');
 }
 
-/**
- * 下载安装包
- * @param {{url:string, version?:string, mode?:'installer'|'portable'}} opts
- */
-async function downloadUpdate(opts = {}) {
-  const url = String(opts.url || '');
-  if (!/^https?:\/\//i.test(url)) {
-    return { ok: false, error: '安装包地址无效，请到官网手动下载。' };
-  }
-  const mode = opts.mode === 'portable' ? 'portable' : 'installer';
-  const dir = updateDir();
+/** 小于 1MB 的 exe 一定是错误页或空文件，直接判定失败 */
+const MIN_EXE_BYTES = 1024 * 1024;
+
+function originOf(url) {
   try {
-    await fsp.mkdir(dir, { recursive: true });
-  } catch {}
-
-  const fallback = `mengmeng-music-${opts.version || app.getVersion()}-${mode}.exe`;
-  const file = path.join(dir, safeName(url, fallback));
-  const part = `${file}.part`;
-
-  if (activeDownload) {
-    try {
-      activeDownload.abort();
-    } catch {}
-    activeDownload = null;
+    return new URL(url).origin;
+  } catch {
+    return '';
   }
+}
 
+/** 把下载地址换到另一个站点，用于域名失效时兜底 */
+function swapOrigin(url, next) {
+  try {
+    const u = new URL(url);
+    const n = new URL(next);
+    u.protocol = n.protocol;
+    u.host = n.host;
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
+/** exe 头必须是 MZ，能挡住把 HTML 错误页存成 exe 的情况 */
+function looksLikeExe(file) {
+  try {
+    const fd = fs.openSync(file, 'r');
+    const buf = Buffer.alloc(2);
+    fs.readSync(fd, buf, 0, 2, 0);
+    fs.closeSync(fd);
+    return buf[0] === 0x4d && buf[1] === 0x5a;
+  } catch {
+    return false;
+  }
+}
+
+function cleanupFile(file) {
+  try {
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+  } catch {}
+}
+
+/**
+ * 单次下载尝试（内部使用）
+ * 只有校验通过才会把 .part 改名为正式文件，失败时不会留下 0 字节 exe
+ */
+function downloadOnce(url, file, part, opts) {
   return new Promise((resolve) => {
     let done = false;
     let lastEmit = 0;
     let received = 0;
     let total = 0;
-    let startedAt = Date.now();
+    const startedAt = Date.now();
+    let timer = null;
 
     const finish = (payload) => {
       if (done) return;
@@ -238,36 +265,54 @@ async function downloadUpdate(opts = {}) {
 
     let req;
     try {
-      req = net.request({ url, method: 'GET', redirect: 'follow' });
+      req = net.request({ url, method: 'GET', redirect: 'follow', cache: 'no-store' });
     } catch (e) {
       return finish({ ok: false, error: String(e.message || e) });
     }
     activeDownload = req;
 
-    const timer = setTimeout(
+    timer = setTimeout(
       () => {
         try {
           req.abort();
         } catch {}
-        finish({ ok: false, error: '下载超时，请检查网络后重试。' });
+        finish({ ok: false, error: '下载超时，请检查网络后重试。', retryable: true });
       },
       1000 * 60 * 30
     );
 
     req.setHeader('User-Agent', ua());
-    req.on('error', (e) => finish({ ok: false, error: String(e.message || e) }));
+    req.setHeader('Accept', 'application/octet-stream,*/*');
+    req.on('error', (e) => finish({ ok: false, error: String(e.message || e), retryable: true }));
     req.on('abort', () => finish({ ok: false, error: 'cancelled' }));
 
     req.on('response', (res) => {
-      if (res.statusCode < 200 || res.statusCode >= 400) {
-        return finish({ ok: false, error: `HTTP ${res.statusCode}` });
+      const code = res.statusCode;
+      if (code !== 200 && code !== 206) {
+        try {
+          res.resume();
+        } catch {}
+        const error =
+          code === 404
+            ? '安装包不存在（HTTP 404），服务器上可能还没有这个版本'
+            : `下载失败（HTTP ${code}）`;
+        return finish({ ok: false, error, retryable: code === 404 || code === 403 || code >= 500 });
       }
+
       total = parseInt(res.headers['content-length'] || '0', 10) || 0;
+      if (total && total < MIN_EXE_BYTES) {
+        try {
+          res.resume();
+        } catch {}
+        return finish({ ok: false, error: `安装包体积异常（${total} 字节），服务器文件不完整`, retryable: true });
+      }
+
       const ws = fs.createWriteStream(part);
       ws.on('error', (e) => finish({ ok: false, error: String(e.message || e) }));
 
       res.on('data', (chunk) => {
         received += chunk.length;
+        ws.write(chunk);
         const now = Date.now();
         if (now - lastEmit > 180) {
           lastEmit = now;
@@ -282,14 +327,26 @@ async function downloadUpdate(opts = {}) {
       });
 
       res.on('end', () => {
-        ws.end(async () => {
+        ws.end(() => {
+          if (received < MIN_EXE_BYTES) {
+            cleanupFile(part);
+            return finish({ ok: false, error: `只下载到 ${received} 字节，服务器没有返回安装包`, retryable: true });
+          }
+          if (total && received !== total) {
+            cleanupFile(part);
+            return finish({ ok: false, error: '下载不完整，请重试', retryable: true });
+          }
+          if (!looksLikeExe(part)) {
+            cleanupFile(part);
+            return finish({ ok: false, error: '下载到的文件不是有效的 Windows 安装包', retryable: true });
+          }
           try {
-            await fsp.rename(part, file);
+            fs.renameSync(part, file);
           } catch (e) {
             return finish({ ok: false, error: String(e.message || e) });
           }
           send('update:progress', { received, total: total || received, percent: 100, speed: 0 });
-          finish({ ok: true, path: file, mode, version: opts.version || '' });
+          finish({ ok: true, path: file, mode: opts.mode === 'portable' ? 'portable' : 'installer', version: opts.version || '' });
         });
       });
 
@@ -297,12 +354,73 @@ async function downloadUpdate(opts = {}) {
         try {
           ws.destroy();
         } catch {}
-        finish({ ok: false, error: String(e.message || e) });
+        cleanupFile(part);
+        finish({ ok: false, error: String(e.message || e), retryable: true });
       });
     });
 
     req.end();
   });
+}
+
+/**
+ * 下载安装包
+ *
+ * 校验：HTTP 状态、content-length、实际字节数、exe 头（MZ）
+ * 兜底：当前域名 404 / 文件不完整时，自动换下一个站点重试同一路径
+ * @param {{url:string, version?:string, mode?:'installer'|'portable'}} opts
+ */
+async function downloadUpdate(opts = {}) {
+  const rawUrl = String(opts.url || '');
+  if (!/^https?:\/\//i.test(rawUrl)) {
+    return { ok: false, error: '安装包地址无效，请到官网手动下载。' };
+  }
+  const mode = opts.mode === 'portable' ? 'portable' : 'installer';
+  const dir = updateDir();
+  try {
+    await fsp.mkdir(dir, { recursive: true });
+  } catch {}
+
+  const fallback = `mengmeng-music-${opts.version || app.getVersion()}-${mode}.exe`;
+  const file = path.join(dir, safeName(rawUrl, fallback));
+  const part = `${file}.part`;
+
+  if (activeDownload) {
+    try {
+      activeDownload.abort();
+    } catch {}
+    activeDownload = null;
+  }
+
+  // 之前失败留下的 0 字节文件会让用户双击到一个坏 exe，先清掉
+  try {
+    if (fs.existsSync(file) && fs.statSync(file).size < MIN_EXE_BYTES) cleanupFile(file);
+  } catch {}
+  cleanupFile(part);
+
+  const candidates = [];
+  const push = (u) => {
+    if (!u) return;
+    const o = originOf(u);
+    if (candidates.some((x) => originOf(x) === o)) return;
+    candidates.push(u);
+  };
+  push(rawUrl);
+  for (const o of origins()) push(swapOrigin(rawUrl, o));
+
+  let lastError = '下载失败，请稍后重试';
+  for (const url of candidates) {
+    const r = await downloadOnce(url, file, part, opts);
+    if (r.ok) return r;
+    lastError = r.error || lastError;
+    if (r.error === 'cancelled') return r;
+    cleanupFile(part);
+    try {
+      if (fs.existsSync(file) && fs.statSync(file).size < MIN_EXE_BYTES) cleanupFile(file);
+    } catch {}
+    send('update:progress', { received: 0, total: 0, percent: 0, speed: 0 });
+  }
+  return { ok: false, error: lastError };
 }
 
 /* ------------------------------ 安装 ------------------------------ */
