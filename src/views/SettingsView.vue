@@ -404,6 +404,7 @@ onMounted(async () => {
             <span class="nav-label">{{ s.label }}</span>
             <span class="nav-desc">{{ s.desc }}</span>
           </span>
+          <span v-if="update.badge && s.key === 'about'" class="nav-dot" title="发现新版本" />
         </button>
       </nav>
 
@@ -883,6 +884,9 @@ onMounted(async () => {
                 <span class="k">当前版本</span>
                 <span class="v">
                   v{{ update.version || '—' }}
+                  <button v-if="update.badge" class="ver-badge" @click="update.openPanel()">
+                    <span class="ver-badge-dot" /> 有新版本 v{{ update.newVersion }}
+                  </button>
                   <button class="row-link" @click="update.check({ silent: false })">检查更新</button>
                 </span>
               </div>
@@ -1314,6 +1318,42 @@ onMounted(async () => {
 }
 .row-link:hover {
   text-decoration: underline;
+}
+/* 设置页里的「有新版本」红点提示 */
+.nav-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14);
+}
+.ver-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 10px;
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.1);
+  color: #d0453b;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+}
+.ver-badge:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
+.ver-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+[data-theme='dark'] .ver-badge {
+  color: #ff8b82;
 }
 .dim-label {
   font-size: 11px;

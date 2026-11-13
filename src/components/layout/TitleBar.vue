@@ -6,10 +6,12 @@ import { usePlayerStore } from '@/stores/player';
 import Icon from '@/components/common/Icon.vue';
 import { useAppStore } from '@/stores/app';
 import { useUiStore } from '@/stores/ui';
+import { useUpdateStore } from '@/stores/update';
 import { platformIcon } from '@/utils/brand';
 
 const app = useAppStore();
 const ui = useUiStore();
+const update = useUpdateStore();
 const player = usePlayerStore();
 const router = useRouter();
 const route = useRoute();
@@ -375,6 +377,15 @@ function openVip() {
         <Icon name="repeat" :size="12" />
       </button>
 
+      <button
+        v-if="update.badge"
+        class="circle-btn update-bell"
+        :title="`发现新版本 v${update.newVersion}，点击查看更新说明`"
+        @click="update.openPanel()"
+      >
+        <Icon name="bell" :size="17" color="#d0453b" />
+        <span class="red-dot" />
+      </button>
       <button class="circle-btn" title="页面功能引导" @click="openGuide">
         <Icon name="question" :size="17" color="#4b515c" />
       </button>
@@ -758,6 +769,7 @@ function openVip() {
   color: var(--kg-accent-dark);
 }
 .circle-btn {
+  position: relative;
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -769,6 +781,30 @@ function openVip() {
 }
 .circle-btn:hover {
   background: var(--kg-panel);
+}
+/* 有新版本：右上角一颗红点，轻轻呼吸，不会一直闪得晃眼 */
+.update-bell {
+  border-color: rgba(208, 69, 59, 0.35);
+  background: rgba(208, 69, 59, 0.08);
+}
+.red-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid var(--kg-bg);
+  box-sizing: content-box;
+  animation: kg-dot-pulse 2.4s ease-in-out infinite;
+}
+@keyframes kg-dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.42); }
+  50% { box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .red-dot { animation: none; }
 }
 .win-ctrls {
   display: flex;

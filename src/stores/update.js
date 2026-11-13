@@ -3,6 +3,8 @@ import { defineStore } from 'pinia';
 import { ElMessage } from 'element-plus';
 
 const FALLBACK_ORIGIN = 'https://moin.shrtxs.cn';
+/** 被「跳过此版本」忽略的版本号，红点不再为它亮起 */
+const IGNORE_KEY = 'kg-update-ignored-v1';
 
 /**
  * 在线更新状态
@@ -23,6 +25,20 @@ export const useUpdateStore = defineStore('update', () => {
   const latest = ref(null);
   const error = ref('');
   const site = ref(null);
+  /** 有新版本且用户还没处理：标题栏 / 设置页的红点靠它驱动 */
+  const badge = ref(false);
+  const ignoredVersion = ref('');
+  try {
+    ignoredVersion.value = localStorage.getItem(IGNORE_KEY) || '';
+  } catch {}
+
+  const newVersion = computed(() => latest.value?.version || '');
+
+  /** 只在「确实有新版 + 没被跳过」时亮红点；关掉弹窗不会清掉它 */
+  function refreshBadge() {
+    const v = newVersion.value;
+    badge.value = Boolean(hasUpdate.value && v && v !== ignoredVersion.value);
+  }
 
   const downloading = ref(false);
   const percent = ref(0);
@@ -84,9 +100,19 @@ export const useUpdateStore = defineStore('update', () => {
     hasUpdate.value = true;
     force.value = Boolean(res.force);
     latest.value = res.latest || null;
+    refreshBadge();
     reset();
     visible.value = true;
     return true;
+  }
+
+  /** 点红点随时把更新弹窗叫回来 */
+  function openPanel() {
+    if (!hasUpdate.value && !latest.value) {
+      check({ silent: false });
+      return;
+    }
+    visible.value = true;
   }
 
   /** 检查更新；silent=true 时无更新不打扰 */
@@ -114,6 +140,7 @@ export const useUpdateStore = defineStore('update', () => {
       hasUpdate.value = Boolean(res.hasUpdate);
       force.value = Boolean(res.force);
       latest.value = res.latest || null;
+      refreshBadge();
       if (!res.hasUpdate) {
         if (!silent) ElMessage.success(`已是最新版本 v${res.current}`);
         return res;
@@ -185,6 +212,7 @@ export const useUpdateStore = defineStore('update', () => {
       ElMessage.success(
         portable.value ? '正在替换为新版本，程序即将重启…' : '安装程序已启动，请按提示完成安装'
       );
+      badge.value = false;
     } catch (e) {
       installing.value = false;
       ElMessage.error(String(e?.message || e));
@@ -213,7 +241,13 @@ export const useUpdateStore = defineStore('update', () => {
 
   async function skip() {
     const u = api();
-    if (u && latest.value?.version) await u.ignore(latest.value.version);
+    const v = newVersion.value;
+    if (u && v) await u.ignore(v);
+    if (v) {
+      ignoredVersion.value = v;
+      try { localStorage.setItem(IGNORE_KEY, v); } catch {}
+    }
+    badge.value = false;
     visible.value = false;
   }
 
@@ -228,6 +262,7 @@ export const useUpdateStore = defineStore('update', () => {
 
   function dismiss() {
     if (force.value) return;
+    // 只关弹窗，红点保留：用户关掉弹窗后仍能看到「有新版本」的常驻提醒
     visible.value = false;
   }
 
@@ -243,6 +278,8 @@ export const useUpdateStore = defineStore('update', () => {
     latest,
     error,
     site,
+    badge,
+    newVersion,
     downloading,
     percent,
     speed,
@@ -258,6 +295,7 @@ export const useUpdateStore = defineStore('update', () => {
     init,
     reset,
     applyResult,
+    openPanel,
     check,
     download,
     install,
