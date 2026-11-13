@@ -47,6 +47,7 @@ const palette = computed(() => {
   <div class="cover" :style="{ width: px(size), height: px(size), borderRadius: px(radius) }">
     <img
       v-if="src && !failed"
+      :key="src || 'no-src'"
       :src="src"
       :alt="alt"
       loading="lazy"

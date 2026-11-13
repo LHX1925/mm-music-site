@@ -224,7 +224,7 @@ function onUserCommand(cmd) {
           <CoverImage
             :src="pl.cover"
             :size="collapsed ? 34 : 26"
-            :radius="collapsed ? 17 : 6"
+            :radius="collapsed ? 8 : 6"
             :letter="pl.name.slice(0, 1)"
             :seed="pl.id"
             class="pl-cover"
@@ -323,14 +323,14 @@ function onUserCommand(cmd) {
   height: 42px;
   min-height: 42px;
   padding: 0;
-  border-radius: 50% !important;
+  border-radius: 10px !important;
   justify-content: center;
   overflow: hidden;
 }
 .sidebar.collapsed .pl-item .pl-cover {
   width: 34px !important;
   height: 34px !important;
-  border-radius: 50% !important;
+  border-radius: 8px !important;
 }
 .sidebar.collapsed .pl-item.active {
   box-shadow: 0 0 0 2px var(--kg-accent);
@@ -340,7 +340,7 @@ function onUserCommand(cmd) {
   height: 34px;
   margin: 8px auto 2px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 8px;
   justify-content: center;
 }
 .sidebar.collapsed .quick-list {
@@ -377,7 +377,7 @@ function onUserCommand(cmd) {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 8px;
+  padding-bottom: 14px;
 }
 .side-scroll::-webkit-scrollbar {
   width: 6px;
@@ -684,7 +684,7 @@ function onUserCommand(cmd) {
   justify-content: flex-start;
   gap: 6px;
   padding: 0 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.035);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 .round-btn {
   width: 30px;
