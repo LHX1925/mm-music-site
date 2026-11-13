@@ -405,33 +405,36 @@ onMounted(() => loadTab(tab.value));
   font-weight: 700;
 }
 .tabs {
-  display: flex;
-  gap: 22px;
-  border-bottom: 1px solid var(--kg-line);
+  display: inline-flex;
+  gap: 2px;
+  background: var(--kg-panel);
+  border: 1px solid var(--kg-line);
+  border-radius: 11px;
+  padding: 4px;
   margin-bottom: 18px;
   overflow-x: auto;
+  max-width: 100%;
 }
 .tab {
-  padding: 6px 0 10px;
-  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
   color: var(--kg-text-2);
   white-space: nowrap;
-  position: relative;
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tab:hover {
+  color: var(--kg-text);
 }
 .tab.active {
+  background: var(--kg-surface);
   color: var(--kg-text);
   font-weight: 600;
+  box-shadow: 0 1px 3px rgba(15, 20, 32, 0.1);
 }
 .tab.active::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: -1px;
-  width: 18px;
-  height: 2px;
-  background: var(--kg-accent);
-  border-radius: 2px;
+  display: none;
 }
 .block {
   margin-bottom: 28px;
@@ -471,16 +474,22 @@ onMounted(() => loadTab(tab.value));
   flex-wrap: wrap;
 }
 .tag-group {
-  height: 28px;
-  padding: 0 14px;
-  border-radius: 14px;
-  font-size: 12px;
+  height: 30px;
+  padding: 0 15px;
+  border-radius: 15px;
+  font-size: 12.5px;
   background: var(--kg-panel);
   color: var(--kg-text-2);
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tag-group:hover {
+  color: var(--kg-text);
 }
 .tag-group.active {
-  background: #1c1d21;
+  background: var(--kg-accent);
   color: #fff;
+  font-weight: 600;
 }
 .chips {
   display: flex;
@@ -489,18 +498,23 @@ onMounted(() => loadTab(tab.value));
   margin-bottom: 14px;
 }
 .chip {
-  height: 26px;
-  padding: 0 12px;
-  border-radius: 13px;
+  height: 28px;
+  padding: 0 13px;
+  border-radius: 14px;
   font-size: 11.5px;
-  background: var(--kg-surface);
+  background: var(--kg-panel);
   border: 1px solid var(--kg-line);
   color: var(--kg-text-2);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.chip:hover {
+  color: var(--kg-text);
 }
 .chip.active {
-  color: #0a8f52;
-  border-color: #b7ebcd;
-  background: #f2fcf6;
+  background: var(--kg-accent-soft);
+  color: var(--kg-accent-dark);
+  border-color: transparent;
+  font-weight: 600;
 }
 .rank-grid {
   display: grid;

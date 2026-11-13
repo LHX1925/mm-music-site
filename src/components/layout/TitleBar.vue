@@ -190,6 +190,8 @@ watch(keyword, (v) => {
     return;
   }
   timer = setTimeout(async () => {
+    // 本地 API 服务未就绪时不发请求，避免控制台刷 ERR_CONNECTION_REFUSED
+    if (!app.ready[app.platform]) return;
     const [sg, ss, sl] = await Promise.allSettled([
       searchSuggest(q),
       searchSongs(q, 1, 5),

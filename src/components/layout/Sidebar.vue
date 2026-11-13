@@ -279,6 +279,13 @@ function onUserCommand(cmd) {
   padding: 16px 0 10px;
   gap: 0;
 }
+/* 收起态：头像整体水平居中（含包裹层），避免偏左 */
+.sidebar.collapsed .user-ava {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex: 1 1 auto;
+}
 .sidebar.collapsed .user-meta,
 .sidebar.collapsed .user-card > svg,
 .sidebar.collapsed .q-text,
@@ -308,11 +315,13 @@ function onUserCommand(cmd) {
   height: 42px;
   min-height: 42px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 50% !important;
   justify-content: center;
   overflow: hidden;
 }
 .sidebar.collapsed .pl-item .pl-cover {
+  width: 34px !important;
+  height: 34px !important;
   border-radius: 50% !important;
 }
 .sidebar.collapsed .pl-item.active {

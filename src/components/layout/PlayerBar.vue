@@ -1,12 +1,14 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { ElMessage } from 'element-plus';
 import Icon from '@/components/common/Icon.vue';
 import ProgressSlider from '@/components/common/ProgressSlider.vue';
 import { usePlayerStore } from '@/stores/player';
 import { useLibraryStore } from '@/stores/library';
 import { useUiStore } from '@/stores/ui';
 import { useAppStore } from '@/stores/app';
+import { useVipStore } from '@/stores/vip';
 import { useSongActions } from '@/composables/useSongActions';
 import { songFlagsOf } from '@/utils/songFlags';
 
@@ -14,6 +16,7 @@ const player = usePlayerStore();
 const library = useLibraryStore();
 const ui = useUiStore();
 const app = useAppStore();
+const vip = useVipStore();
 const { openAddToPlaylist } = useSongActions();
 const router = useRouter();
 
@@ -114,6 +117,16 @@ const qualityOptions = [
   { key: 'viper_atmos', label: '蝰蛇全景声', desc: '超级VIP', vip: true },
   { key: 'viper_tape', label: '蝰蛇母带', desc: '超级VIP', vip: true },
 ];
+
+/** 蝰蛇三档需要超级 VIP：没有时只提示、不切换音质 */
+function onQuality(key) {
+  const opt = qualityOptions.find((o) => o.key === key);
+  if (opt?.vip && !vip.hasPremium) {
+    ElMessage.warning('蝰蛇音质需要超级 VIP，当前账号暂不支持');
+    return;
+  }
+  player.setQuality(key);
+}
 </script>
 
 <template>
@@ -222,7 +235,7 @@ const qualityOptions = [
         </template>
       </el-dropdown>
 
-      <el-dropdown trigger="click" @command="player.setQuality">
+      <el-dropdown trigger="click" @command="onQuality">
         <button class="quality-btn">{{ player.qualityLabel }}</button>
         <template #dropdown>
           <el-dropdown-menu class="quality-menu">

@@ -223,6 +223,11 @@ if (ui.showLogin) loadQr();
       <img class="tip-logo" :src="platformIcon(app.platform)" alt="" draggable="false" />
       当前为 {{ app.platformName }}，可在右上角切换
     </div>
+
+    <div class="privacy-note">
+      <Icon name="shield" :size="13" color="#9aa0ab" />
+      <span>隐私声明：本应用仅使用你的账号连接酷狗服务获取音乐内容；登录凭证仅保存在本机，绝不会上传任何个人数据至第三方服务器。</span>
+    </div>
   </div>
 </template>
 
@@ -409,5 +414,22 @@ if (ui.showLogin) loadQr();
   height: 13px;
   border-radius: 4px;
   object-fit: cover;
+}
+.privacy-note {
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--kg-panel-2);
+  border: 1px solid var(--kg-line);
+  font-size: 11px;
+  line-height: 1.65;
+  color: var(--kg-text-3);
+}
+.privacy-note :deep(svg) {
+  flex: 0 0 auto;
+  margin-top: 2px;
 }
 </style>
