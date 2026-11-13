@@ -221,7 +221,14 @@ function onUserCommand(cmd) {
           :title="pl.name"
           @click="go(`/playlist/${pl.id}`)"
         >
-          <CoverImage :src="pl.cover" :size="26" :radius="6" :letter="pl.name.slice(0, 1)" :seed="pl.id" class="pl-cover" />
+          <CoverImage
+            :src="pl.cover"
+            :size="collapsed ? 34 : 26"
+            :radius="collapsed ? 17 : 6"
+            :letter="pl.name.slice(0, 1)"
+            :seed="pl.id"
+            class="pl-cover"
+          />
           <span class="ellipsis pl-name">{{ pl.name }}</span>
           <span class="pl-count">{{ pl.songCount || '' }}</span>
         </button>
@@ -236,7 +243,7 @@ function onUserCommand(cmd) {
       </div>
     </div>
 
-    <!-- 底部工具（播放列表 / 桌面歌词入口已在播放条上，这里不再重复） -->
+    <!-- 底部工具：只保留收起 / 深浅主题 / 设置 -->
     <div class="side-bottom">
       <button class="round-btn" :title="collapsed ? '展开侧边栏' : '收起侧边栏'" @click="toggleCollapse">
         <Icon name="sidebar" :size="17" />
@@ -244,14 +251,8 @@ function onUserCommand(cmd) {
       <button class="round-btn" title="切换深浅主题" @click="toggleAppearance">
         <Icon :name="app.effectiveAppearance === 'dark' ? 'moon' : 'sun'" :size="17" />
       </button>
-      <button class="round-btn" title="主题与音效" @click="ui.showTheme = true">
-        <Icon name="star" :size="17" />
-      </button>
       <button class="round-btn" title="设置" @click="go('/settings')">
         <Icon name="settings" :size="17" />
-      </button>
-      <button class="round-btn" title="听歌识曲" @click="go('/discover?tab=identify')">
-        <Icon name="game" :size="17" />
       </button>
     </div>
   </aside>
@@ -287,9 +288,43 @@ function onUserCommand(cmd) {
 .sidebar.collapsed .nav-count,
 .sidebar.collapsed .add-btn span,
 .sidebar.collapsed .pl-head,
-.sidebar.collapsed .pl-list,
-.sidebar.collapsed .pl-login span {
+.sidebar.collapsed .pl-login span,
+.sidebar.collapsed .pl-name,
+.sidebar.collapsed .pl-count,
+.sidebar.collapsed .pl-more,
+.sidebar.collapsed .pl-empty {
   display: none;
+}
+/* 收起态：歌单不清空，改成一列圆形封面缩略图（悬停有名字提示） */
+.sidebar.collapsed .pl-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 0 6px;
+}
+.sidebar.collapsed .pl-item {
+  width: 42px;
+  height: 42px;
+  min-height: 42px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
+  overflow: hidden;
+}
+.sidebar.collapsed .pl-item .pl-cover {
+  border-radius: 50% !important;
+}
+.sidebar.collapsed .pl-item.active {
+  box-shadow: 0 0 0 2px var(--kg-accent);
+}
+.sidebar.collapsed .pl-login {
+  width: 34px;
+  height: 34px;
+  margin: 8px auto 2px;
+  padding: 0;
+  border-radius: 50%;
+  justify-content: center;
 }
 .sidebar.collapsed .quick-list {
   padding: 0 10px;
@@ -313,11 +348,6 @@ function onUserCommand(cmd) {
   justify-content: center;
   padding: 0;
   height: 40px;
-}
-.sidebar.collapsed .pl-login {
-  justify-content: center;
-  padding: 0;
-  margin: 6px 14px;
 }
 .sidebar.collapsed .side-bottom {
   flex-direction: column;

@@ -108,9 +108,9 @@ const qualityOptions = [
   { label: '高品 320kbps', value: '320' },
   { label: '无损 FLAC', value: 'flac' },
   { label: 'Hi-Res 无损', value: 'high' },
-  { label: '蝰蛇超清（需超级VIP）', value: 'viper_clear' },
-  { label: '蝰蛇全景声（需超级VIP）', value: 'viper_atmos' },
-  { label: '蝰蛇母带（需超级VIP）', value: 'viper_tape' },
+  { label: '蝰蛇超清', value: 'viper_clear', tag: '超级VIP' },
+  { label: '蝰蛇全景声', value: 'viper_atmos', tag: '超级VIP' },
+  { label: '蝰蛇母带', value: 'viper_tape', tag: '超级VIP' },
 ];
 const barPosOptions = [
   { label: '压在任务栏上', value: 'taskbar' },
@@ -414,6 +414,7 @@ onMounted(async () => {
           <header class="sec-head">
             <h3>外观与主题</h3>
             <span class="sec-desc">主题色、深色模式、液态玻璃与背景</span>
+            <button class="row-link sec-head-link" @click="ui.showTheme = true">主题与音效面板 →</button>
           </header>
           <div class="grid">
             <SettingCard icon="wallpaper" title="任务栏歌词" :span="true" help="默认常开：封面 + 歌词 + 上一首/播放/下一首；只有这里的开关能关掉它">
@@ -530,6 +531,7 @@ onMounted(async () => {
                 :model-value="app.settings.quality"
                 :options="qualityOptions"
                 icon="headphones"
+                title="音质档位"
                 @change="set({ quality: $event })"
               />
             </SettingCard>
@@ -1214,6 +1216,11 @@ onMounted(async () => {
 .sec-desc {
   font-size: 11.5px;
   color: var(--kg-text-3);
+}
+.sec-head-link {
+  margin-left: auto;
+  align-self: center;
+  white-space: nowrap;
 }
 .grid {
   display: grid;

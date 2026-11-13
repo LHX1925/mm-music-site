@@ -109,7 +109,7 @@ const defaultConfig = () => ({
   uiPort: 32190,
   nativeFrame: false,
   startMinimized: false,
-  closeToTray: false,
+  closeToTray: true,
   autoStart: false,
   gpuDisabled: false,
   highDpi: false,
@@ -136,12 +136,19 @@ function readConfig() {
     const base = defaultConfig();
     // 旧版本把更新源写成了 www.lhx520.icu，该域名已失效，读到就换成现在的官网
     if (/lhx520\.icu/i.test(String(raw.updateOrigin || ''))) raw.updateOrigin = base.updateOrigin;
-    return {
+    const cfg = {
       ...base,
       ...raw,
       std: { ...base.std, ...(raw.std || {}) },
       lite: { ...base.lite, ...(raw.lite || {}) },
     };
+    // 「关闭窗口最小化到托盘」改为默认开启：老配置里存着 false 的，升级后强制打开一次
+    if (!cfg.trayDefaultApplied) {
+      cfg.closeToTray = true;
+      cfg.trayDefaultApplied = true;
+      writeConfig(cfg);
+    }
+    return cfg;
   } catch {
     const cfg = defaultConfig();
     try {

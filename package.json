@@ -1,6 +1,6 @@
 {
   "name": "mengmeng-music",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "private": true,
   "description": "萌萌音乐 - 支持酷狗音乐 / 酷狗音乐概念版的桌面音乐播放器",
   "author": "LHX",
@@ -73,6 +73,7 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "runAfterFinish": true,
+      "include": "installer.nsh",
       "deleteAppDataOnUninstall": false,
       "language": "2052",
       "installerLanguages": [

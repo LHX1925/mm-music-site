@@ -489,11 +489,20 @@ img {
   background: rgba(80, 140, 220, 0.16);
 }
 
-/* Element Plus 细节微调 */
+/* Element Plus 细节微调：所有浮层共用一套圆角、描边、投影和深色底 */
 .el-popper.is-light {
-  border-radius: 10px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--kg-line) !important;
+  background: var(--kg-surface) !important;
+  color: var(--kg-text) !important;
+  box-shadow: 0 16px 40px rgba(12, 18, 32, 0.18), 0 2px 8px rgba(12, 18, 32, 0.07) !important;
+}
+.el-popper.is-light .el-popper__arrow::before {
   border-color: var(--kg-line) !important;
-  box-shadow: 0 10px 30px rgba(20, 24, 32, 0.12) !important;
+  background: var(--kg-surface) !important;
+}
+html.dark .el-popper.is-light {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 .el-message {
   border-radius: 10px !important;
@@ -516,8 +525,21 @@ img {
   border: 1px solid var(--kg-line);
 }
 .el-dialog__header {
-  padding: 20px 22px 12px !important;
+  position: relative;
+  padding: 20px 22px 14px !important;
   margin: 0 !important;
+  border-bottom: 1px solid var(--kg-line);
+}
+/* 标题左上角一根主题色小条，让各个弹窗看起来是同一套窗口 */
+.el-dialog__header::before {
+  content: '';
+  position: absolute;
+  left: 22px;
+  top: 0;
+  width: 30px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--kg-accent-grad, var(--kg-accent));
 }
 .el-dialog__headerbtn {
   top: 14px !important;
@@ -570,22 +592,74 @@ img {
   font-size: 12.5px !important;
   color: var(--kg-text-2) !important;
 }
+.el-message-box__btns .el-button {
+  border-radius: 8px !important;
+}
+/* 下拉菜单：紧凑一点、选中态明确、分组线更轻 */
 .el-dropdown-menu {
-  border-radius: 10px !important;
-  padding: 5px !important;
+  min-width: 168px;
+  max-height: min(360px, 70vh);
+  overflow-y: auto;
+  border-radius: 12px !important;
+  padding: 6px !important;
   border: 1px solid var(--kg-line) !important;
-  box-shadow: 0 12px 30px rgba(12, 18, 32, 0.16) !important;
+  background: var(--kg-surface) !important;
+  box-shadow: 0 16px 40px rgba(12, 18, 32, 0.18) !important;
+}
+html.dark .el-dropdown-menu {
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5) !important;
+}
+.el-dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.el-dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--kg-scroll);
+  border-radius: 3px;
 }
 .el-dropdown-menu__item {
-  border-radius: 6px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px !important;
   font-size: 12.5px !important;
-  padding: 0 12px !important;
-  height: 32px;
-  line-height: 32px !important;
+  padding: 0 10px !important;
+  min-height: 34px;
+  line-height: 34px !important;
+  color: var(--kg-text) !important;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.el-dropdown-menu__item:hover {
+.el-dropdown-menu__item:not(.is-disabled):hover,
+.el-dropdown-menu__item:focus {
   background: var(--kg-hover) !important;
+  color: var(--kg-text) !important;
+}
+/* 当前选中项（音质、倍速等单选菜单） */
+.el-dropdown-menu__item.is-current {
+  background: var(--kg-accent-soft) !important;
   color: var(--kg-accent-dark) !important;
+  font-weight: 600;
+}
+.el-dropdown-menu__item--divided {
+  margin: 5px 0 !important;
+  border-top: 1px solid var(--kg-line) !important;
+}
+.el-dropdown-menu__item--divided::before {
+  display: none !important;
+}
+/* 设置页 / 表单里的选择器 */
+.el-select-dropdown__item {
+  font-size: 12.5px !important;
+  height: 34px;
+  line-height: 34px !important;
+  border-radius: 7px;
+}
+.el-select-dropdown__item.is-selected {
+  color: var(--kg-accent-dark) !important;
+  font-weight: 600;
+}
+.el-popover.el-popper {
+  padding: 12px 14px !important;
+  font-size: 12px !important;
 }
 .el-tabs__item {
   font-size: 13px !important;

@@ -104,11 +104,15 @@ function closeVolume(e) {
 onMounted(() => document.addEventListener('click', closeVolume));
 onBeforeUnmount(() => document.removeEventListener('click', closeVolume));
 
+/** 和设置页保持同一套档位：蝰蛇三档需要超级 VIP，取不到音源时播放器会自动降级 */
 const qualityOptions = [
   { key: '128', label: '标准音质', desc: '128kbps' },
   { key: '320', label: '高品音质', desc: '320kbps' },
   { key: 'flac', label: '无损音质', desc: 'FLAC' },
   { key: 'high', label: 'Hi-Res', desc: '24bit' },
+  { key: 'viper_clear', label: '蝰蛇超清', desc: '超级VIP', vip: true },
+  { key: 'viper_atmos', label: '蝰蛇全景声', desc: '超级VIP', vip: true },
+  { key: 'viper_tape', label: '蝰蛇母带', desc: '超级VIP', vip: true },
 ];
 </script>
 
@@ -221,11 +225,18 @@ const qualityOptions = [
       <el-dropdown trigger="click" @command="player.setQuality">
         <button class="quality-btn">{{ player.qualityLabel }}</button>
         <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item v-for="q in qualityOptions" :key="q.key" :command="q.key">
+          <el-dropdown-menu class="quality-menu">
+            <el-dropdown-item
+              v-for="(q, i) in qualityOptions"
+              :key="q.key"
+              :command="q.key"
+              :divided="i === 4"
+              :class="{ 'is-current': q.key === player.quality }"
+            >
               <div class="q-item">
-                <span>{{ q.label }}</span>
-                <span class="q-desc">{{ q.desc }}</span>
+                <Icon v-if="q.key === player.quality" name="check" :size="13" />
+                <span class="q-label">{{ q.label }}</span>
+                <span class="q-desc" :class="{ vip: q.vip }">{{ q.desc }}</span>
               </div>
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -523,14 +534,30 @@ const qualityOptions = [
 }
 .q-item {
   display: flex;
-  width: 150px;
-  justify-content: space-between;
+  width: 168px;
+  justify-content: flex-start;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+.q-label {
+  flex: 1;
+  min-width: 0;
 }
 .q-desc {
   font-size: 10.5px;
   color: var(--kg-text-3);
+  flex: 0 0 auto;
+}
+.q-desc.vip {
+  font-size: 10px;
+  color: #a8791f;
+  background: linear-gradient(135deg, #fff2d3, #f7dfa6);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+[data-theme='dark'] .q-desc.vip {
+  color: #e7c483;
+  background: rgba(220, 170, 80, 0.16);
 }
 .ctl.on {
   color: var(--kg-accent-dark);

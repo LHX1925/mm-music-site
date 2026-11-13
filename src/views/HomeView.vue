@@ -239,14 +239,17 @@ function playCheckin() {
         <div class="hero-main-text">
           <span class="checkin-chip">打卡</span>
           <h3>{{ checkin.title }}</h3>
-          <p>{{ checkin.lines[0] }}<br />{{ checkin.lines[1] }}</p>
+          <p>
+            <span class="hero-line">{{ checkin.lines[0] }}</span>
+            <span class="hero-line">{{ checkin.lines[1] }}</span>
+          </p>
           <button class="hero-play" :title="`播放打卡精选（${checkinPool.length || daily.length || 30} 首）`" @click.stop="playCheckin">
             <Icon name="play" :size="16" color="#fff" filled />
           </button>
         </div>
         <div class="hero-cover">
           <span class="vinyl" />
-          <CoverImage :src="dailyCover || heroSongs[0]?.cover" :size="88" :radius="8" class="hero-cover-img" />
+          <CoverImage :src="dailyCover || heroSongs[0]?.cover" :size="72" :radius="8" class="hero-cover-img" />
         </div>
       </div>
 
@@ -501,8 +504,8 @@ function playCheckin() {
 
 .hero {
   display: grid;
-  /* 从 2.2fr 收到 1.75fr：打卡卡片不再一屏占掉小半宽度，四张副卡也能露出更多封面 */
-  grid-template-columns: 1.75fr repeat(4, 1fr);
+  /* 打卡卡片与四张副卡同一行，行高由副卡固定高度决定，蓝色卡片因此是横向长方形而不是方块 */
+  grid-template-columns: 1.9fr repeat(4, 1fr);
   gap: 10px;
   margin-bottom: 22px;
   max-width: 1180px;
@@ -514,33 +517,32 @@ function playCheckin() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
+  gap: 8px;
+  padding: 10px 14px;
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  min-height: 118px;
 }
 .hero-main::after {
   content: '';
   position: absolute;
-  width: 180px;
-  height: 180px;
-  right: -60px;
-  bottom: -90px;
+  width: 140px;
+  height: 140px;
+  right: -50px;
+  bottom: -76px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.12);
 }
 .checkin-chip {
   display: inline-flex;
   align-items: center;
-  height: 18px;
+  height: 17px;
   padding: 0 7px;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   border-radius: 9px;
   background: rgba(255, 255, 255, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.35);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   color: #fff;
   letter-spacing: 1px;
@@ -550,8 +552,8 @@ function playCheckin() {
   flex: 1;
 }
 .hero-main-text h3 {
-  margin: 0 0 5px;
-  font-size: 19px;
+  margin: 0 0 3px;
+  font-size: 17px;
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -560,15 +562,21 @@ function playCheckin() {
   text-overflow: ellipsis;
 }
 .hero-main-text p {
-  margin: 0 0 10px;
-  font-size: 11.5px;
-  line-height: 1.5;
+  margin: 0 0 8px;
+  font-size: 11px;
+  line-height: 1.45;
   color: rgba(255, 255, 255, 0.92);
-  word-break: break-word;
+  min-width: 0;
+}
+.hero-line {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .hero-play {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--kg-accent);
   display: grid;
@@ -579,15 +587,15 @@ function playCheckin() {
   position: relative;
   flex: 0 0 auto;
   transform: translateX(-2px);
-  padding-right: 14px;
+  padding-right: 10px;
 }
 .vinyl {
   position: absolute;
-  right: -18px;
+  right: -14px;
   top: 50%;
-  width: 80px;
-  height: 80px;
-  margin-top: -40px;
+  width: 64px;
+  height: 64px;
+  margin-top: -32px;
   border-radius: 50%;
   background:
     radial-gradient(circle at center, #2a2a2f 0 24%, transparent 25%),
@@ -609,7 +617,8 @@ function playCheckin() {
 .hero-img {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  /* 固定高度而不是 1:1：整行变矮，打卡卡片自然成横向长方形 */
+  height: 104px;
   border-radius: 8px;
   overflow: hidden;
 }

@@ -6,6 +6,8 @@ import { hexToRgbString, resolveAccent, shade, withAlpha } from '@/utils/themeCo
 const STORAGE_KEY = 'kg-settings-v1';
 /** 任务栏歌词改为「默认常开」的一次性迁移标记 */
 const BAR_MIGRATE_KEY = 'kg-taskbar-lyric-default-on';
+/** 「关闭窗口最小化到托盘」改为默认开启的一次性迁移标记 */
+const TRAY_MIGRATE_KEY = 'kg-close-to-tray-default-on';
 
 function loadSettings() {
   try {
@@ -28,8 +30,19 @@ export const useAppStore = defineStore('app', () => {
       return true;
     }
   })();
+  // 新装 / 升级后第一次启动，把「关闭到托盘」强制打开一次；之后完全尊重用户自己的开关
+  const trayMigrated = (() => {
+    try {
+      const done = localStorage.getItem(TRAY_MIGRATE_KEY) === '1';
+      if (!done) localStorage.setItem(TRAY_MIGRATE_KEY, '1');
+      return done;
+    } catch {
+      return true;
+    }
+  })();
 
-  const platform = ref(saved.platform || 'std'); // std=酷狗音乐  lite=酷狗音乐概念版
+  // 新装默认使用概念版（老用户若手动切换过平台，仍以本地保存的为准）
+  const platform = ref(saved.platform || 'lite'); // std=酷狗音乐  lite=酷狗音乐概念版
   const ports = ref({ std: 32100, lite: 32101 });
   const ready = ref({ std: false, lite: false });
   const serverError = ref({ std: '', lite: '' });
@@ -53,7 +66,7 @@ export const useAppStore = defineStore('app', () => {
     /** 任务栏歌词位置：taskbar=压在任务栏上，screen=贴在屏幕最底部（悬浮在任务栏上方） */
     barPos: saved.barPos || 'taskbar',
     showPlayCount: saved.showPlayCount ?? true,
-    closeToTray: saved.closeToTray ?? false,
+    closeToTray: trayMigrated ? (saved.closeToTray ?? true) : true,
     accent: saved.accent || 'green',
     // 外观
     appearance: saved.appearance || 'light', // light | dark | auto
