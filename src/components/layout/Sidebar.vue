@@ -263,6 +263,8 @@ function onUserCommand(cmd) {
   width: 256px;
   flex: 0 0 256px;
   background: var(--kg-side);
+  border-right: 1px solid var(--kg-line-2);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -684,7 +686,8 @@ function onUserCommand(cmd) {
   justify-content: flex-start;
   gap: 6px;
   padding: 0 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--kg-line-2);
+  background: var(--kg-panel);
 }
 .round-btn {
   width: 30px;

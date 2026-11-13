@@ -299,7 +299,7 @@ function onQuality(key) {
   align-items: center;
   gap: 16px;
   padding: 0 16px;
-  border-top: 1px solid var(--kg-line);
+  border-top: 1px solid var(--kg-line-2);
   background: var(--kg-surface);
   min-width: 0;
   box-sizing: border-box;
