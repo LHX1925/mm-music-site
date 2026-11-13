@@ -8,17 +8,18 @@
   --kg-accent-rgb: 0, 210, 106;
   --kg-accent-dark: #00b25b;
   --kg-accent-soft: #e7fbf0;
-  --kg-bg: #ffffff;
-  --kg-surface: #ffffff;
+  --kg-bg: #eceef2;
+  --kg-surface: #f7f8fa;
   --kg-side: #eef0f4;
   --kg-panel: #eaeef3;
   --kg-panel-2: #f3f5f8;
   --kg-card: #ffffff;
   --kg-text: #14161a;
-  --kg-text-2: #626a78;
-  --kg-text-3: #878e9c;
-  --kg-line: #e2e5ea;
-  --kg-line-2: #d7dbe2;
+  --kg-text-2: #5b626f;
+  --kg-text-3: #828a98;
+  /* 浅色下分隔线必须足够深，否则侧栏/播放栏/底栏三块会糊成一片 */
+  --kg-line: #d4d9e2;
+  --kg-line-2: #c6ccd6;
   --kg-hover: #e6e9ef;
   --kg-gold: #b98b3d;
   --kg-gold-soft: #fdf6e7;

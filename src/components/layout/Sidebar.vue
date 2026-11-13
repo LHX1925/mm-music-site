@@ -687,7 +687,7 @@ function onUserCommand(cmd) {
   gap: 6px;
   padding: 0 12px;
   border-top: 1px solid var(--kg-line-2);
-  background: var(--kg-panel);
+  background: var(--kg-hover);
 }
 .round-btn {
   width: 30px;
@@ -695,7 +695,8 @@ function onUserCommand(cmd) {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--kg-text-3);
+  color: var(--kg-text-2);
+  background: var(--kg-panel);
   transition: background 0.15s ease, color 0.15s ease;
 }
 .round-btn:hover {

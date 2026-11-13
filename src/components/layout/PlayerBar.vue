@@ -440,6 +440,7 @@ function onQuality(key) {
   display: grid;
   place-items: center;
   color: var(--kg-text-2);
+  background: var(--kg-panel);
   transition: background 0.15s ease, color 0.15s ease;
   flex: 0 0 auto;
 }
@@ -455,22 +456,24 @@ function onQuality(key) {
   font-weight: 600;
   line-height: 1;
 }
-/* 播放/暂停跟上一首、下一首同款：纯图标按钮，不再是一个实心彩色圆 */
+/* 播放/暂停：主按钮用实心主题色圆 + 白图标，浅色/深色下都一眼可辨 */
 .play-btn {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: transparent;
-  color: var(--kg-text);
-  box-shadow: none;
+  background: var(--kg-accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(var(--kg-accent-rgb), 0.35);
   display: grid;
   place-items: center;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: filter 0.15s ease, transform 0.12s ease;
   flex: 0 0 auto;
 }
 .play-btn:hover {
-  background: var(--kg-hover);
-  color: var(--kg-text);
+  filter: brightness(0.95);
+}
+.play-btn:active {
+  transform: scale(0.94);
 }
 .spin {
   animation: spin 0.9s linear infinite;
