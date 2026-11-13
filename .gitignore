@@ -25,3 +25,6 @@ screen.png
 # 编辑器
 .vscode/
 .idea/
+
+# 本地打包备份，不入库
+mm-music-repo.zip
