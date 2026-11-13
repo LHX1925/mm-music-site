@@ -173,12 +173,12 @@ html[data-theme='dark'] .sub {
   border-radius: 8px;
   display: grid;
   place-items: center;
-  color: #5d636e;
-  background: rgba(15, 20, 30, 0.05);
+  color: #3f454f;
+  background: rgba(15, 20, 30, 0.08);
   transition: background 0.14s ease, color 0.14s ease;
 }
 .btn:hover {
-  background: rgba(15, 20, 30, 0.1);
+  background: rgba(15, 20, 30, 0.14);
   color: #14161a;
 }
 html[data-theme='dark'] .btn {

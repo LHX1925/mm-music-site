@@ -274,9 +274,11 @@ html[data-theme='dark'] .song {
   gap: 3px;
   padding: 3px 5px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(15, 20, 30, 0.06);
-  opacity: 0.5;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 20, 30, 0.1);
+  /* 浅色桌面下默认半透明会把按钮「藏」起来，这里把基础不透明度提上来，
+     保证暂停/播放等按钮不管深浅主题都清晰可见（hover 时再升到全显） */
+  opacity: 0.92;
   transition: opacity 0.16s ease, background 0.16s ease;
 }
 html[data-theme='dark'] .tools {
@@ -292,7 +294,7 @@ html[data-theme='dark'] .tools {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #4b515c;
+  color: #3a4049;
   -webkit-app-region: no-drag;
   transition: background 0.14s ease, transform 0.12s ease, color 0.14s ease;
 }
@@ -300,7 +302,7 @@ html[data-theme='dark'] .tool {
   color: #fff;
 }
 .tool:hover {
-  background: rgba(15, 20, 30, 0.1);
+  background: rgba(15, 20, 30, 0.12);
 }
 html[data-theme='dark'] .tool:hover {
   background: rgba(255, 255, 255, 0.22);
@@ -308,11 +310,15 @@ html[data-theme='dark'] .tool:hover {
 .tool:active {
   transform: scale(0.92);
 }
+/* 暂停/播放主按钮：用主题色实心 + 白图标，深浅主题下都清晰可见，
+   不再用极淡的灰圆（浅色桌面下会糊成一片、几乎看不见） */
 .tool.main {
-  background: rgba(15, 20, 30, 0.08);
+  background: var(--kg-accent);
+  color: #fff;
 }
 html[data-theme='dark'] .tool.main {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--kg-accent);
+  color: #fff;
 }
 .tool.on {
   background: var(--kg-accent);

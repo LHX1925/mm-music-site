@@ -555,10 +555,8 @@ export const usePlayerStore = defineStore('player', () => {
   function prev() {
     if (!queue.value.length) return;
     clearAutoSkip();
-    if (audio && audio.currentTime > 3) {
-      audio.currentTime = 0;
-      return;
-    }
+    // 直接回到上一首：去掉「播放超过 3 秒先重头播放、再按一次才切上一首」的逻辑，
+    // 否则播到一半点上一首会先跳回本曲开头，要连按两次才真正切歌
     let i = index.value - 1;
     if (i < 0) i = queue.value.length - 1;
     playQueueItem(i);
