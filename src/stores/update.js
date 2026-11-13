@@ -2,7 +2,7 @@ import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
 import { ElMessage } from 'element-plus';
 
-const FALLBACK_ORIGIN = 'https://www.lhx520.icu';
+const FALLBACK_ORIGIN = 'https://moin.shrtxs.cn';
 
 /**
  * 在线更新状态

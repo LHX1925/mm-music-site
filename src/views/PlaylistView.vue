@@ -17,7 +17,7 @@ const route = useRoute();
 const router = useRouter();
 const library = useLibraryStore();
 const user = useUserStore();
-const { playAll, download, openAddToPlaylist } = useSongActions();
+const { playAll, openAddToPlaylist } = useSongActions();
 
 const detail = ref(null);
 const songs = ref([]);
@@ -69,11 +69,6 @@ function playAllSongs() {
   playAll(songs.value, 0, detail.value?.name || '歌单');
 }
 
-function downloadAll() {
-  if (!user.isLogin) return ElMessage.warning('请先登录');
-  songs.value.slice(0, 20).forEach((s) => download(s));
-}
-
 function addAll() {
   openAddToPlaylist(songs.value);
 }
@@ -109,7 +104,6 @@ watch(id, load);
             <Icon name="play" :size="15" color="#fff" filled /> 播放全部
           </button>
           <button class="btn" @click="addAll"><Icon name="plus" :size="15" /> 添加到歌单</button>
-          <button class="btn" @click="downloadAll"><Icon name="download" :size="15" /> 下载</button>
           <button class="icon-btn" title="更多" @click="router.push('/my/playlists')">
             <Icon name="more" :size="17" />
           </button>

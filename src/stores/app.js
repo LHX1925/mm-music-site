@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
 import { setRuntime } from '@/api/http';
+import { hexToRgbString, resolveAccent, shade, withAlpha } from '@/utils/themeColors';
 
 const STORAGE_KEY = 'kg-settings-v1';
 /** 任务栏歌词改为「默认常开」的一次性迁移标记 */
@@ -53,7 +54,7 @@ export const useAppStore = defineStore('app', () => {
     barPos: saved.barPos || 'taskbar',
     showPlayCount: saved.showPlayCount ?? true,
     closeToTray: saved.closeToTray ?? false,
-    accent: saved.accent || '#00d26a',
+    accent: saved.accent || 'green',
     // 外观
     appearance: saved.appearance || 'light', // light | dark | auto
     navMode: saved.navMode || 'left',
@@ -87,6 +88,8 @@ export const useAppStore = defineStore('app', () => {
     autoVip: saved.autoVip || { enabled: false, time: '09:00', upgrade: false },
     /** 进入页面时自动弹出功能引导（可在设置里关闭） */
     guideOn: saved.guideOn ?? true,
+    /** 左侧导航是否收起（只留图标） */
+    sidebarCollapsed: saved.sidebarCollapsed ?? false,
   });
 
   const platformLabel = computed(() => (platform.value === 'lite' ? '概念版' : '标准版'));
@@ -130,42 +133,22 @@ export const useAppStore = defineStore('app', () => {
     () => applyAccent()
   );
 
-  /** 应用主题色 */
+  /** 应用主题色（支持单色与渐变主题） */
   function applyAccent() {
-    const c = settings.value.accent;
-    if (!c) return;
+    const theme = resolveAccent(settings.value.accent);
     const root = document.documentElement;
-    root.style.setProperty('--kg-accent', c);
+    const dark = effectiveAppearance.value === 'dark';
+    root.style.setProperty('--kg-accent', theme.from);
+    root.style.setProperty('--kg-accent-2', theme.to);
+    // 大面积色块（打卡卡片等）用这一条渐变
+    root.style.setProperty('--kg-accent-grad', theme.gradient);
     // 半透明阴影/描边统一用 RGB 分量，主题色一变就全部跟着变
-    root.style.setProperty('--kg-accent-rgb', rgbOf(c));
+    root.style.setProperty('--kg-accent-rgb', hexToRgbString(theme.from));
     // 深色主题下浅色调更适合做文字色，浅色主题用加深色
-    root.style.setProperty('--kg-accent-dark', effectiveAppearance.value === 'dark' ? shade(c, 22) : shade(c, -12));
-    root.style.setProperty('--kg-accent-soft', hexToRgba(c, effectiveAppearance.value === 'dark' ? 0.16 : 0.12));
-    root.style.setProperty('--el-color-primary', c);
-    root.style.setProperty('--el-color-primary-light-9', hexToRgba(c, 0.12));
-  }
-
-  function rgbOf(hex) {
-    const n = parseInt(String(hex).replace('#', ''), 16);
-    if (Number.isNaN(n)) return '0, 210, 106';
-    return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
-  }
-
-  function hexToRgba(hex, alpha) {
-    const n = parseInt(String(hex).replace('#', ''), 16);
-    const r = (n >> 16) & 255;
-    const g = (n >> 8) & 255;
-    const b = n & 255;
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-
-  function shade(hex, percent) {
-    const n = parseInt(String(hex).replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const r = Math.max(0, Math.min(255, (n >> 16) + amt));
-    const g = Math.max(0, Math.min(255, ((n >> 8) & 0x00ff) + amt));
-    const b = Math.max(0, Math.min(255, (n & 0x0000ff) + amt));
-    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+    root.style.setProperty('--kg-accent-dark', dark ? shade(theme.from, 22) : shade(theme.from, -12));
+    root.style.setProperty('--kg-accent-soft', withAlpha(theme.from, dark ? 0.16 : 0.12));
+    root.style.setProperty('--el-color-primary', theme.from);
+    root.style.setProperty('--el-color-primary-light-9', withAlpha(theme.from, 0.12));
   }
 
   function applyAppearance() {

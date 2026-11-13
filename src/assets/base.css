@@ -1,5 +1,8 @@
 :root {
   --kg-accent: #00d26a;
+  /* 渐变色主题的第二个颜色，打卡卡片等大面积色块用 */
+  --kg-accent-2: #00a85a;
+  --kg-accent-grad: linear-gradient(135deg, #00d26a 0%, #00a85a 100%);
   /* 主色调的 RGB 分量，用于 rgba(var(--kg-accent-rgb), .3) 这类半透明阴影/描边，
      这样主题色一变，阴影和光晕也跟着变，不会再留一截写死的绿色 */
   --kg-accent-rgb: 0, 210, 106;
@@ -155,7 +158,6 @@
 [data-glass='on'] .glass-surface,
 [data-glass='on'] .rank-card,
 [data-glass='on'] .detail-head,
-[data-glass='on'] .lib-page .card,
 [data-glass='on'] .account-card,
 [data-glass='on'] .about-card {
   background: var(--kg-surface) !important;
@@ -196,7 +198,6 @@
 [data-bg='on'] .rank-card,
 [data-bg='on'] .set-card,
 [data-bg='on'] .detail-head,
-[data-bg='on'] .lib-page .card,
 [data-bg='on'] .account-card,
 [data-bg='on'] .about-card {
   background: var(--kg-card) !important;
@@ -227,7 +228,6 @@
 [data-bg='on']:not([data-theme='dark']) .rank-card,
 [data-bg='on']:not([data-theme='dark']) .set-card,
 [data-bg='on']:not([data-theme='dark']) .detail-head,
-[data-bg='on']:not([data-theme='dark']) .lib-page .card,
 [data-bg='on']:not([data-theme='dark']) .account-card,
 [data-bg='on']:not([data-theme='dark']) .about-card,
 [data-bg='on']:not([data-theme='dark']) .glass-surface {
@@ -507,20 +507,85 @@ img {
 .el-message--success {
   background: var(--kg-surface) !important;
 }
+/* 统一弹窗外观：更松的留白 + 更柔的投影，避免各个弹窗长短不一显得凌乱 */
 .el-dialog {
-  border-radius: 14px !important;
+  border-radius: 16px !important;
   overflow: hidden;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 22px 60px rgba(12, 18, 32, 0.22) !important;
+  border: 1px solid var(--kg-line);
 }
 .el-dialog__header {
-  padding: 18px 22px 10px !important;
+  padding: 20px 22px 12px !important;
   margin: 0 !important;
+}
+.el-dialog__headerbtn {
+  top: 14px !important;
+  right: 12px !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+}
+.el-dialog__headerbtn:hover {
+  background: var(--kg-hover);
+}
+.el-dialog__headerbtn .el-dialog__close {
+  color: var(--kg-text-3) !important;
+  font-size: 16px !important;
+}
+.el-dialog__headerbtn:hover .el-dialog__close {
+  color: var(--kg-text) !important;
 }
 .el-dialog__title {
   font-size: 15px !important;
   font-weight: 600 !important;
+  color: var(--kg-text) !important;
+  line-height: 22px;
 }
 .el-dialog__body {
   padding: 6px 22px 20px !important;
+  color: var(--kg-text);
+}
+.el-dialog__footer {
+  padding: 4px 22px 18px !important;
+}
+/* 弹窗打开时轻压一点背景，别让后面的视频/图片抢注意力 */
+.el-overlay {
+  background-color: rgba(10, 14, 22, 0.42) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.el-message-box {
+  border-radius: 14px !important;
+  padding: 18px 20px 14px !important;
+  border: 1px solid var(--kg-line) !important;
+  max-width: calc(100vw - 40px);
+}
+.el-message-box__title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+.el-message-box__content {
+  font-size: 12.5px !important;
+  color: var(--kg-text-2) !important;
+}
+.el-dropdown-menu {
+  border-radius: 10px !important;
+  padding: 5px !important;
+  border: 1px solid var(--kg-line) !important;
+  box-shadow: 0 12px 30px rgba(12, 18, 32, 0.16) !important;
+}
+.el-dropdown-menu__item {
+  border-radius: 6px !important;
+  font-size: 12.5px !important;
+  padding: 0 12px !important;
+  height: 32px;
+  line-height: 32px !important;
+}
+.el-dropdown-menu__item:hover {
+  background: var(--kg-hover) !important;
+  color: var(--kg-accent-dark) !important;
 }
 .el-tabs__item {
   font-size: 13px !important;

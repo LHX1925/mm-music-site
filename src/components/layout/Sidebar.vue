@@ -20,6 +20,8 @@ const router = useRouter();
 const route = useRoute();
 
 const playlistTab = ref('created');
+/** 侧栏收起：只留图标，给内容区腾出宽度 */
+const collapsed = computed(() => app.settings.sidebarCollapsed === true);
 const scrollEl = ref(null);
 /** 未登录时的默认头像 */
 const DEFAULT_AVATAR = '/assets/profile.jpg';
@@ -42,7 +44,7 @@ const navs = [
   { icon: 'vip', label: '会员中心', path: '/vip', badge: () => (vip.claimedToday ? '' : '可领') },
   { icon: 'heart', label: '喜欢', path: '/favorite', count: () => library.favorites.length },
   { icon: 'clock', label: '最近播放', path: '/recent' },
-  { icon: 'download', label: '本地和下载', path: '/local' },
+  { icon: 'download', label: '本地音乐', path: '/local' },
   { icon: 'list', label: '试听列表', path: '/preview', count: () => library.preview.length },
 ];
 
@@ -64,6 +66,10 @@ function toggleAppearance() {
 
 function go(path) {
   router.push(path);
+}
+
+function toggleCollapse() {
+  app.updateSettings({ sidebarCollapsed: !collapsed.value });
 }
 
 async function openVip() {
@@ -108,7 +114,7 @@ function onUserCommand(cmd) {
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ collapsed }">
     <div class="side-scroll" ref="scrollEl">
       <!-- 用户卡片 -->
       <el-dropdown trigger="click" placement="bottom-start" @command="onUserCommand">
@@ -151,6 +157,7 @@ function onUserCommand(cmd) {
           :key="q.name"
           class="quick-item"
           :class="{ active: isActive(q.path) }"
+          :title="collapsed ? q.label : q.desc"
           @click="go(q.path)"
         >
           <span class="q-icon"><Icon :name="q.icon" :size="18" :filled="q.icon === 'home'" /></span>
@@ -174,6 +181,7 @@ function onUserCommand(cmd) {
           :key="n.path"
           class="nav-item"
           :class="{ active: isActive(n.path) }"
+          :title="collapsed ? n.label : ''"
           @click="go(n.path)"
         >
           <Icon :name="n.icon" :size="19" />
@@ -230,8 +238,14 @@ function onUserCommand(cmd) {
 
     <!-- 底部工具（播放列表 / 桌面歌词入口已在播放条上，这里不再重复） -->
     <div class="side-bottom">
+      <button class="round-btn" :title="collapsed ? '展开侧边栏' : '收起侧边栏'" @click="toggleCollapse">
+        <Icon name="sidebar" :size="17" />
+      </button>
       <button class="round-btn" title="切换深浅主题" @click="toggleAppearance">
         <Icon :name="app.effectiveAppearance === 'dark' ? 'moon' : 'sun'" :size="17" />
+      </button>
+      <button class="round-btn" title="主题与音效" @click="ui.showTheme = true">
+        <Icon name="star" :size="17" />
       </button>
       <button class="round-btn" title="设置" @click="go('/settings')">
         <Icon name="settings" :size="17" />
@@ -251,6 +265,65 @@ function onUserCommand(cmd) {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  transition: width 0.2s ease, flex-basis 0.2s ease;
+}
+
+/* ---------------- 收起状态：只留一列图标 ---------------- */
+.sidebar.collapsed {
+  width: 68px;
+  flex: 0 0 68px;
+}
+.sidebar.collapsed .user-card {
+  justify-content: center;
+  padding: 16px 0 10px;
+  gap: 0;
+}
+.sidebar.collapsed .user-meta,
+.sidebar.collapsed .user-card > svg,
+.sidebar.collapsed .q-text,
+.sidebar.collapsed .q-chev,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .nav-badge,
+.sidebar.collapsed .nav-count,
+.sidebar.collapsed .add-btn span,
+.sidebar.collapsed .pl-head,
+.sidebar.collapsed .pl-list,
+.sidebar.collapsed .pl-login span {
+  display: none;
+}
+.sidebar.collapsed .quick-list {
+  padding: 0 10px;
+}
+.sidebar.collapsed .quick-item {
+  justify-content: center;
+  padding: 0;
+  height: 40px;
+}
+.sidebar.collapsed .q-icon {
+  width: auto;
+}
+.sidebar.collapsed .add-btn {
+  margin: 10px 14px 4px;
+  height: 34px;
+}
+.sidebar.collapsed .nav-list {
+  padding: 8px 10px 4px;
+}
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0;
+  height: 40px;
+}
+.sidebar.collapsed .pl-login {
+  justify-content: center;
+  padding: 0;
+  margin: 6px 14px;
+}
+.sidebar.collapsed .side-bottom {
+  flex-direction: column;
+  height: auto;
+  padding: 8px 0;
+  gap: 4px;
 }
 .side-scroll {
   flex: 1;

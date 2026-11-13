@@ -17,6 +17,8 @@ import { useUpdateStore } from '@/stores/update';
 import { todayStr } from '@/stores/vip';
 import { LYRIC_COLORS, readLyricCfg, readLyricFavs, removeLyricFav, saveLyricCfg } from '@/utils/desktopLyric';
 import { GREETINGS, pickGreeting, playGreeting, stopGreeting } from '@/utils/greeting';
+import { platformIcon } from '@/utils/brand';
+import { ACCENT_THEMES, resolveAccent } from '@/utils/themeColors';
 
 const app = useAppStore();
 const user = useUserStore();
@@ -96,7 +98,7 @@ const sections = [
   { key: 'lyric', label: '歌词', icon: 'note', desc: '桌面歌词与字号' },
   { key: 'content', label: '内容与搜索', icon: 'search', desc: '搜索与数据源' },
   { key: 'system', label: '系统与性能', icon: 'settings', desc: '启动 / 托盘 / 代理' },
-  { key: 'storage', label: '文件与下载', icon: 'download', desc: '下载与本地目录' },
+  { key: 'storage', label: '文件与本地', icon: 'folder', desc: '本地音乐目录' },
   { key: 'vip', label: '会员', icon: 'vip', desc: '自动领取' },
   { key: 'about', label: '关于', icon: 'shield', desc: '版本与声明' },
 ];
@@ -105,7 +107,10 @@ const qualityOptions = [
   { label: '标准 128kbps', value: '128' },
   { label: '高品 320kbps', value: '320' },
   { label: '无损 FLAC', value: 'flac' },
-  { label: 'Hi-Res 母带', value: 'high' },
+  { label: 'Hi-Res 无损', value: 'high' },
+  { label: '蝰蛇超清（需超级VIP）', value: 'viper_clear' },
+  { label: '蝰蛇全景声（需超级VIP）', value: 'viper_atmos' },
+  { label: '蝰蛇母带（需超级VIP）', value: 'viper_tape' },
 ];
 const barPosOptions = [
   { label: '压在任务栏上', value: 'taskbar' },
@@ -136,20 +141,28 @@ const searchModeOptions = [
   { label: '歌词优先', value: 'lyric' },
 ];
 const dataSourceOptions = [
-  { label: '标准版（酷狗音乐）', value: 'std' },
-  { label: '概念版（lite）', value: 'lite' },
+  { label: '酷狗音乐 · 标准版', value: 'std' },
+  { label: '酷狗音乐 · 概念版', value: 'lite' },
 ];
 const logOptions = [
   { label: '操作日志', value: 'op' },
   { label: '错误日志', value: 'error' },
 ];
-const accentOptions = [
-  { label: '酷狗绿', value: '#00d26a' },
-  { label: '晴空蓝', value: '#2f80ed' },
-  { label: '暮光紫', value: '#7c5cff' },
-  { label: '蜜柑橙', value: '#ff7043' },
-  { label: '樱花粉', value: '#e8436b' },
-];
+/** 当前生效的主题（兼容旧版本存的十六进制色值） */
+const activeAccent = computed(() => resolveAccent(app.settings.accent));
+
+const sourceBusy = ref(false);
+
+/** 切换数据源：会重启对应实例并重新拉账号数据，加个忙碌态避免连点 */
+async function switchSource(value) {
+  if (value === app.platform || sourceBusy.value) return;
+  sourceBusy.value = true;
+  try {
+    await app.switchPlatform(value);
+  } finally {
+    sourceBusy.value = false;
+  }
+}
 
 function set(patch) {
   return app.updateSettings(patch);
@@ -170,21 +183,38 @@ async function setAccent(v) {
   app.applyAccent();
 }
 
+/**
+ * 分区在滚动容器内的真实偏移。
+ * 不能用 el.offsetTop：它是相对 offsetParent（这里是整个窗口）算的，
+ * 会把标题栏、账号卡片的高度也算进去，于是点「外观与主题」会直接滚到下面几个分区，
+ * 看起来就是「点了没打开对应功能」。这里改成相对滚动容器换算。
+ */
+function sectionTop(el) {
+  if (!el || !bodyEl.value) return 0;
+  const r = el.getBoundingClientRect();
+  const box = bodyEl.value.getBoundingClientRect();
+  return r.top - box.top + bodyEl.value.scrollTop;
+}
+
 function scrollTo(key) {
   activeSection.value = key;
   const el = document.getElementById(`sec-${key}`);
   if (el && bodyEl.value) {
-    bodyEl.value.scrollTo({ top: el.offsetTop - 12, behavior: 'smooth' });
+    bodyEl.value.scrollTo({ top: Math.max(0, sectionTop(el) - 8), behavior: 'smooth' });
   }
 }
 
 function onScroll() {
   if (!bodyEl.value) return;
-  const top = bodyEl.value.scrollTop + 90;
+  const top = bodyEl.value.scrollTop + 70;
   let cur = sections[0].key;
   for (const s of sections) {
     const el = document.getElementById(`sec-${s.key}`);
-    if (el && el.offsetTop <= top) cur = s.key;
+    if (el && sectionTop(el) <= top) cur = s.key;
+  }
+  // 滚到最底时直接点亮最后一个分区，避免最后一段够不到高度
+  if (bodyEl.value.scrollTop + bodyEl.value.clientHeight >= bodyEl.value.scrollHeight - 4) {
+    cur = sections[sections.length - 1].key;
   }
   activeSection.value = cur;
 }
@@ -403,8 +433,22 @@ onMounted(async () => {
               </div>
               <div class="set-hint">除按钮外整条鼠标穿透，不影响点开始菜单与任务栏图标</div>
             </SettingCard>
-            <SettingCard icon="star" title="主色调">
-              <SettingSelect :model-value="app.settings.accent" :options="accentOptions" icon="star" @change="setAccent" />
+            <SettingCard icon="star" title="主色调" :span="true" :help="`当前：${activeAccent.label}`">
+              <div class="theme-row">
+                <button
+                  v-for="t in ACCENT_THEMES"
+                  :key="t.key"
+                  class="theme-pill"
+                  :class="{ active: activeAccent.key === t.key }"
+                  :title="t.label"
+                  @click="setAccent(t.key)"
+                >
+                  <span class="theme-dot" :style="{ background: `linear-gradient(135deg, ${t.from} 0%, ${t.to} 100%)` }" />
+                  <span class="theme-label">{{ t.label }}</span>
+                  <Icon v-if="activeAccent.key === t.key" name="check" :size="11" class="theme-check" />
+                </button>
+              </div>
+              <div class="set-hint">单色与渐变主题都能选，切换立即生效，打卡卡片、按钮、强调色会一起变</div>
             </SettingCard>
             <SettingCard icon="moon" title="外观模式">
               <SettingSelect
@@ -486,7 +530,7 @@ onMounted(async () => {
             <span class="sec-desc">音质、输出设备与播放行为</span>
           </header>
           <div class="grid">
-            <SettingCard icon="headphones" title="音质选择">
+            <SettingCard icon="headphones" title="音质选择" help="蝰蛇三档需要超级VIP，取不到音源会自动回落到有版权的那一档">
               <SettingSelect
                 :model-value="app.settings.quality"
                 :options="qualityOptions"
@@ -626,13 +670,26 @@ onMounted(async () => {
                 @change="set({ searchMode: $event })"
               />
             </SettingCard>
-            <SettingCard icon="cloud" title="数据源" help="标准版与概念版为两套独立账号与曲库">
-              <SettingSelect
-                :model-value="app.platform"
-                :options="dataSourceOptions"
-                icon="cloud"
-                @change="app.switchPlatform($event)"
-              />
+            <SettingCard icon="cloud" title="数据源" :span="true" help="标准版与概念版为两套独立账号与曲库，切换后自动重连">
+              <div class="source-row">
+                <button
+                  v-for="src in dataSourceOptions"
+                  :key="src.value"
+                  class="source-card"
+                  :class="{ active: app.platform === src.value }"
+                  :disabled="sourceBusy"
+                  @click="switchSource(src.value)"
+                >
+                  <img class="source-logo" :src="platformIcon(src.value)" alt="" draggable="false" />
+                  <span class="source-text">
+                    <b>{{ src.label }}</b>
+                    <i>{{ src.value === 'std' ? '完整曲库 · 会员权益齐全' : '年轻化曲库 · 每日可领会员' }}</i>
+                  </span>
+                  <span v-if="app.platform === src.value" class="source-check">
+                    <Icon name="check" :size="12" color="#fff" />
+                  </span>
+                </button>
+              </div>
             </SettingCard>
             <SettingCard icon="list" title="导航方式">
               <SettingSelect :model-value="app.settings.navMode" :options="navOptions" icon="list" />
@@ -726,17 +783,11 @@ onMounted(async () => {
         <!-- 文件 -->
         <section id="sec-storage" class="set-section">
           <header class="sec-head">
-            <h3>文件与下载</h3>
-            <span class="sec-desc">下载目录与本地音乐文件夹</span>
+            <h3>文件与本地</h3>
+            <span class="sec-desc">本地音乐文件夹与缓存</span>
           </header>
           <div class="grid">
-            <SettingCard icon="download" title="下载目录">
-              <div class="dir-row">
-                <span class="dir ellipsis">{{ app.settings.downloadDir || '未设置' }}</span>
-                <button class="mini-btn" @click="chooseDownloadDir">选择</button>
-              </div>
-            </SettingCard>
-            <SettingCard icon="folder" title="本地音乐文件夹">
+            <SettingCard icon="folder" title="本地音乐文件夹" :span="true" help="只读取你添加的目录，不上传、不复制文件">
               <div class="dir-row">
                 <span class="dir ellipsis">{{ (app.settings.localDirs || []).length ? `已添加 ${app.settings.localDirs.length} 个目录` : '未添加' }}</span>
                 <button class="mini-btn" @click="chooseLocalDir">添加</button>
@@ -882,26 +933,43 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.color-row {
+.theme-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-.color-dot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+.theme-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 13px 0 8px;
+  border-radius: 17px;
   border: 1px solid var(--kg-line-2);
-  display: grid;
-  place-items: center;
-  transition: transform 0.12s ease;
+  background: var(--kg-panel-2);
+  font-size: 12px;
+  color: var(--kg-text-2);
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
-.color-dot:hover {
-  transform: scale(1.08);
+.theme-pill:hover {
+  border-color: var(--kg-accent);
+  color: var(--kg-text);
 }
-.color-dot.on {
-  box-shadow: 0 0 0 2px var(--kg-accent);
-  border-color: transparent;
+.theme-pill.active {
+  border-color: var(--kg-accent);
+  background: var(--kg-accent-soft);
+  color: var(--kg-text);
+  font-weight: 600;
+}
+.theme-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex: 0 0 20px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.theme-check {
+  color: var(--kg-accent-dark);
 }
 .auto-text {
   font-size: 9px;
@@ -1432,6 +1500,75 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
   color: var(--kg-text);
+}
+.source-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.source-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  border: 1px solid var(--kg-line-2);
+  background: var(--kg-panel-2);
+  text-align: left;
+  min-width: 0;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.source-card:hover {
+  border-color: var(--kg-accent);
+  background: var(--kg-panel);
+}
+.source-card.active {
+  border-color: var(--kg-accent);
+  background: var(--kg-accent-soft);
+}
+.source-card:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.source-logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  object-fit: cover;
+  flex: 0 0 34px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+.source-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+.source-text b {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--kg-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.source-text i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--kg-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.source-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--kg-accent);
+  display: grid;
+  place-items: center;
+  flex: 0 0 18px;
 }
 .guide-row {
   margin-top: 14px;

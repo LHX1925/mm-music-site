@@ -24,8 +24,7 @@ const emit = defineEmits(['play', 'remove']);
 
 const router = useRouter();
 const ui = useUiStore();
-const { player, library, play, toggleFav, playNext, addToQueue, openAddToPlaylist, download, copyName } =
-  useSongActions();
+const { player, library, play, toggleFav, playNext, addToQueue, openAddToPlaylist, copyName } = useSongActions();
 
 function openMv(song) {
   ui.openMv(song);
@@ -137,9 +136,6 @@ function toArtist(song) {
         <button class="op" title="添加到歌单" @click.stop="openAddToPlaylist([song])">
           <Icon name="plus" :size="15" />
         </button>
-        <button class="op" title="下载" @click.stop="download(song)">
-          <Icon name="download" :size="15" />
-        </button>
         <div class="more-wrap">
           <button class="op" title="更多" @click="toggleMenu(i, $event)">
             <Icon name="more" :size="16" />
@@ -149,7 +145,6 @@ function toArtist(song) {
               <button @click="playNext(song); menuFor = -1">下一首播放</button>
               <button @click="addToQueue(song); menuFor = -1">加入播放队列</button>
               <button @click="openAddToPlaylist([song]); menuFor = -1">添加到歌单</button>
-              <button @click="download(song); menuFor = -1">下载歌曲</button>
               <button @click="openMv(song); menuFor = -1">观看 MV</button>
               <button @click="toAlbum(song); menuFor = -1">查看专辑</button>
               <button @click="copyName(song); menuFor = -1">复制歌名</button>

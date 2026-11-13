@@ -8,8 +8,16 @@ import { useUserStore } from './user';
 import { ensureDfid } from '@/utils/device';
 import { IS_MAIN_WINDOW } from '@/utils/windowRole';
 
-const QUALITY_ORDER = ['128', '320', 'flac', 'high'];
-const QUALITY_LABEL = { '128': '标准', '320': '高品', flac: '无损', high: 'Hi-Res' };
+const QUALITY_ORDER = ['128', '320', 'flac', 'high', 'viper_clear', 'viper_atmos', 'viper_tape'];
+const QUALITY_LABEL = {
+  '128': '标准',
+  '320': '高品',
+  flac: '无损',
+  high: 'Hi-Res',
+  viper_clear: '蝰蛇超清',
+  viper_atmos: '蝰蛇全景声',
+  viper_tape: '蝰蛇母带',
+};
 
 /** KRC / LRC 歌词解析 */
 export function parseLyric(text) {
@@ -247,7 +255,12 @@ export const usePlayerStore = defineStore('player', () => {
   /** 按音质从高到低尝试取流，失败时抛出带原因的错误 */
   async function pickStream(song) {
     const prefer = quality.value;
-    const order = [prefer, ...QUALITY_ORDER.filter((q) => q !== prefer)];
+    // 先试所选音质，再往上试更好的，最后才逐档降级（避免选了蝰蛇却先掉到 128k）
+    const qi = QUALITY_ORDER.indexOf(prefer);
+    const order =
+      qi >= 0
+        ? [...QUALITY_ORDER.slice(qi), ...QUALITY_ORDER.slice(0, qi).reverse()]
+        : [prefer, ...QUALITY_ORDER];
     let lastError = '该歌曲暂无可用音源（可能为 VIP 专享）';
     let dfidRetried = false;
     trial.value = false;

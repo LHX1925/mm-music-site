@@ -15,7 +15,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 /** 主站 + 备用站（任意一个能通即可完成检查） */
-const DEFAULT_ORIGINS = ['https://www.lhx520.icu', 'https://moin.shrtxs.cn'];
+const DEFAULT_ORIGINS = ['https://moin.shrtxs.cn', 'https://www.lhx520.icu'];
 const DEFAULT_ORIGIN = DEFAULT_ORIGINS[0];
 const REQ_TIMEOUT = 15000;
 
@@ -32,7 +32,10 @@ let preferredOrigin = '';
 function origins() {
   const list = [];
   const custom = String(liveCfg()?.updateOrigin || '').trim();
-  if (/^https?:\/\/[^\s]+$/i.test(custom)) list.push(custom.replace(/\/+$/, ''));
+  // 写死的旧域名（www.lhx520.icu）已整站 404，不再作为首选站点浪费时间
+  if (/^https?:\/\/[^\s]+$/i.test(custom) && !/lhx520\.icu/i.test(custom)) {
+    list.push(custom.replace(/\/+$/, ''));
+  }
   if (preferredOrigin && !list.includes(preferredOrigin)) list.push(preferredOrigin);
   for (const o of DEFAULT_ORIGINS) if (!list.includes(o)) list.push(o);
   return list;

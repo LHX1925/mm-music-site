@@ -24,8 +24,8 @@ const { playAll } = useSongActions();
 
 const loading = ref(true);
 const daily = ref([]);
-/** 官方「每日推荐」歌单（不含猜你喜欢 / FM 拼进来的追加曲），打卡按钮播的就是这一份 */
-const officialDaily = ref([]);
+/** 猜你喜欢 + 私人 FM：打卡卡片播的是这一份「打卡精选」，和下面的每日推荐是两套歌 */
+const checkinPool = ref([]);
 const playlists = ref([]);
 const ranks = ref([]);
 const dailyCover = ref('');
@@ -59,7 +59,7 @@ const heroSongs = computed(() => daily.value.slice(0, 6));
 
 /** 首页快捷入口：插画来自 /assets/home，按功能各配一张 */
 const quickEntries = [
-  { label: '本地和下载', desc: '离线也能听', path: '/local', img: '/assets/home/local-music.png' },
+  { label: '本地音乐', desc: '播放本机歌曲', path: '/local', img: '/assets/home/local-music.png' },
   { label: '音乐云盘', desc: '云端曲库', path: '/cloud', img: '/assets/home/cloud-disk.png' },
   { label: '听书电台', desc: '用耳朵读书', path: '/book', img: '/assets/home/live.png' },
   { label: '私人电台', desc: '越听越懂你', path: '/fm', img: '/assets/home/cloud.png' },
@@ -111,10 +111,11 @@ async function load() {
       rankList(),
     ]);
     const recSongs = rec.status === 'fulfilled' ? rec.value.songs || [] : [];
-    officialDaily.value = recSongs;
     if (rec.status === 'fulfilled') dailyCover.value = rec.value.cover || '';
     const likeSongs = like.status === 'fulfilled' ? like.value || [] : [];
     const fmSongs = fm.status === 'fulfilled' ? fm.value || [] : [];
+    // 打卡精选：只用「猜你喜欢 + 私人FM」，不掺下面的每日推荐
+    checkinPool.value = mergeSongs(likeSongs, fmSongs);
     daily.value = mergeSongs(recSongs, likeSongs, fmSongs);
     daily.value.forEach((s) => seenPool.add(keyOf(s)));
     if (pl.status === 'fulfilled') playlists.value = (pl.value.playlists || []).slice(0, 12);
@@ -202,17 +203,17 @@ function playDaily() {
 }
 
 /**
- * 打卡卡片上的圆形按钮：播官方每日推荐歌单本身。
- * 之前这里播的是「每日推荐 + 猜你喜欢 + 私人FM」混合出来的临时池，
- * 混合池里的歌在页面上找不到对应歌单，看着就像在偷偷播别的列表。
+ * 打卡卡片上的圆形按钮：播「打卡精选」，不是下面那份每日推荐。
+ * 打卡本身是个独立的推荐池（猜你喜欢 + 私人FM），播的时候队列名写成「打卡精选」，
+ * 在播放列表里能直接看到这一份，不会再有「偷偷播了个找不到的歌单」的感觉。
  */
 function playCheckin() {
-  const list = officialDaily.value.length ? officialDaily.value : daily.value;
+  const list = checkinPool.value.length ? checkinPool.value : daily.value;
   if (!list.length) {
-    ElMessage({ message: '每日推荐还没加载出来，稍等一下再试', type: 'warning', grouping: true });
+    ElMessage({ message: '打卡精选还没准备好，稍等一下再试', type: 'warning', grouping: true });
     return;
   }
-  playAll(list, 0, '每日推荐');
+  playAll(list, 0, '打卡精选');
 }
 </script>
 
@@ -239,13 +240,13 @@ function playCheckin() {
           <span class="checkin-chip">打卡</span>
           <h3>{{ checkin.title }}</h3>
           <p>{{ checkin.lines[0] }}<br />{{ checkin.lines[1] }}</p>
-          <button class="hero-play" :title="`播放今日推荐（${officialDaily.length || daily.length || 30} 首）`" @click.stop="playCheckin">
+          <button class="hero-play" :title="`播放打卡精选（${checkinPool.length || daily.length || 30} 首）`" @click.stop="playCheckin">
             <Icon name="play" :size="16" color="#fff" filled />
           </button>
         </div>
         <div class="hero-cover">
           <span class="vinyl" />
-          <CoverImage :src="dailyCover || heroSongs[0]?.cover" :size="108" :radius="8" class="hero-cover-img" />
+          <CoverImage :src="dailyCover || heroSongs[0]?.cover" :size="88" :radius="8" class="hero-cover-img" />
         </div>
       </div>
 
@@ -500,23 +501,25 @@ function playCheckin() {
 
 .hero {
   display: grid;
-  grid-template-columns: 2.2fr repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 26px;
+  /* 从 2.2fr 收到 1.75fr：打卡卡片不再一屏占掉小半宽度，四张副卡也能露出更多封面 */
+  grid-template-columns: 1.75fr repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 22px;
+  max-width: 1180px;
 }
 .hero-main {
   border-radius: 10px;
-  /* 跟随主题色：换主色时打卡卡片整块一起变 */
-  background: linear-gradient(135deg, var(--kg-accent) 0%, var(--kg-accent-dark) 100%);
+  /* 跟随主题：单色主题是纯色，渐变主题直接铺渐变 */
+  background: var(--kg-accent-grad, linear-gradient(135deg, var(--kg-accent) 0%, var(--kg-accent-dark) 100%));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 14px;
+  padding: 12px 14px;
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  min-height: 148px;
+  min-height: 118px;
 }
 .hero-main::after {
   content: '';
@@ -547,8 +550,8 @@ function playCheckin() {
   flex: 1;
 }
 .hero-main-text h3 {
-  margin: 0 0 6px;
-  font-size: 23px;
+  margin: 0 0 5px;
+  font-size: 19px;
   color: #fff;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -557,15 +560,15 @@ function playCheckin() {
   text-overflow: ellipsis;
 }
 .hero-main-text p {
-  margin: 0 0 12px;
-  font-size: 12px;
-  line-height: 1.55;
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
   color: rgba(255, 255, 255, 0.92);
   word-break: break-word;
 }
 .hero-play {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--kg-accent);
   display: grid;
@@ -576,15 +579,15 @@ function playCheckin() {
   position: relative;
   flex: 0 0 auto;
   transform: translateX(-2px);
-  padding-right: 18px;
+  padding-right: 14px;
 }
 .vinyl {
   position: absolute;
-  right: -22px;
+  right: -18px;
   top: 50%;
-  width: 98px;
-  height: 98px;
-  margin-top: -49px;
+  width: 80px;
+  height: 80px;
+  margin-top: -40px;
   border-radius: 50%;
   background:
     radial-gradient(circle at center, #2a2a2f 0 24%, transparent 25%),

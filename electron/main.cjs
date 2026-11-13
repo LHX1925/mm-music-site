@@ -118,7 +118,7 @@ const defaultConfig = () => ({
   globalShortcut: false,
   background: { type: 'none', path: '' },
   // 在线更新
-  updateOrigin: 'https://www.lhx520.icu',
+  updateOrigin: 'https://moin.shrtxs.cn',
   updateAutoCheck: true,
   skipUpdateVersion: '',
 });
@@ -134,6 +134,8 @@ function readConfig() {
   try {
     const raw = JSON.parse(fs.readFileSync(configPath(), 'utf8'));
     const base = defaultConfig();
+    // 旧版本把更新源写成了 www.lhx520.icu，该域名已失效，读到就换成现在的官网
+    if (/lhx520\.icu/i.test(String(raw.updateOrigin || ''))) raw.updateOrigin = base.updateOrigin;
     return {
       ...base,
       ...raw,
@@ -1199,7 +1201,7 @@ ipcMain.handle('app:info', async () => ({
   localServerPort,
   platform: process.platform,
   portable: Boolean(process.env.PORTABLE_EXECUTABLE_FILE),
-  updateOrigin: config.updateOrigin || 'https://www.lhx520.icu',
+  updateOrigin: config.updateOrigin || 'https://moin.shrtxs.cn',
   updateAutoCheck: config.updateAutoCheck !== false,
   /** 启动时窗口是否处于隐藏/最小化状态（静默启动不出声续播） */
   startedHidden: Boolean(START_HIDDEN || config.startMinimized),

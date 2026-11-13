@@ -14,7 +14,7 @@ const player = usePlayerStore();
 const library = useLibraryStore();
 const ui = useUiStore();
 const app = useAppStore();
-const { openAddToPlaylist, download } = useSongActions();
+const { openAddToPlaylist } = useSongActions();
 const router = useRouter();
 
 const volumeOpen = ref(false);
@@ -151,9 +151,6 @@ const qualityOptions = [
             </button>
             <button class="mini-btn comment-btn" title="评论" @click="openComments">
               <Icon name="comment" :size="14" />
-            </button>
-            <button class="mini-btn opt" title="下载" @click="download(player.current)">
-              <Icon name="download" :size="14" />
             </button>
           </div>
         </div>

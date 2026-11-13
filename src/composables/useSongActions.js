@@ -1,4 +1,5 @@
 import { ElMessage } from 'element-plus';
+import { copyText } from '@/utils/clipboard';
 import { songUrl, songUrlAuth, songUrlNew } from '@/api';
 import { useAppStore } from '@/stores/app';
 import { useLibraryStore } from '@/stores/library';
@@ -109,9 +110,13 @@ export function useSongActions() {
     }
   }
 
-  function copyName(song) {
-    navigator.clipboard?.writeText(`${song.singer} - ${song.name}`);
-    ElMessage({ message: '已复制歌曲名', type: 'success', grouping: true });
+  async function copyName(song) {
+    const ok = await copyText(`${song.singer} - ${song.name}`);
+    ElMessage({
+      message: ok ? '已复制歌曲名' : '复制失败，请手动选择文本',
+      type: ok ? 'success' : 'warning',
+      grouping: true,
+    });
   }
 
   return {

@@ -64,18 +64,22 @@ onMounted(async () => {
 <template>
   <div class="lib-page page-scroll">
     <div class="head">
-      <h1>本地和下载</h1>
+      <h1>本地音乐</h1>
       <div class="tabs">
         <button class="tab" :class="{ active: tab === 'local' }" @click="tab = 'local'">本地音乐</button>
-        <button class="tab" :class="{ active: tab === 'download' }" @click="tab = 'download'">已下载</button>
+        <button class="tab" :class="{ active: tab === 'download' }" @click="tab = 'download'">下载记录</button>
       </div>
       <div class="spacer" />
       <button class="btn ghost" @click="addFolder"><Icon name="folder" :size="13" /> 添加文件夹</button>
       <button class="btn" :disabled="scanning" @click="scan">
         <Icon name="refresh" :size="13" /> {{ scanning ? '扫描中…' : '重新扫描' }}
       </button>
-      <button class="btn ghost" @click="window.kg?.openPath(app.settings.downloadDir)">
-        <Icon name="download" :size="13" /> 下载目录
+      <button
+        v-if="(app.settings.localDirs || []).length"
+        class="btn ghost"
+        @click="window.kg?.openPath(app.settings.localDirs[0])"
+      >
+        <Icon name="folder" :size="13" /> 打开文件夹
       </button>
     </div>
 
@@ -122,8 +126,8 @@ onMounted(async () => {
       </div>
       <div v-else class="empty">
         <Icon name="download" :size="34" color="#c6cbd4" />
-        <div class="empty-title">还没有下载的歌曲</div>
-        <div class="empty-sub">在歌曲右键菜单或播放条中点击下载即可离线收听</div>
+        <div class="empty-title">这里显示历史下载的歌曲文件</div>
+        <div class="empty-sub">新版本不再提供在线下载，已有的文件仍可在这里播放或清理</div>
       </div>
     </template>
   </div>

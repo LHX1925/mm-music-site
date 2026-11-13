@@ -1,29 +1,26 @@
 <script setup>
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import Icon from '@/components/common/Icon.vue';
 import { useAppStore } from '@/stores/app';
 import { useUiStore } from '@/stores/ui';
+import { ACCENT_THEMES, resolveAccent } from '@/utils/themeColors';
 
 const app = useAppStore();
 const ui = useUiStore();
 
-const colors = [
-  { key: '#00d26a', label: '酷狗绿' },
-  { key: '#2f80ed', label: '晴空蓝' },
-  { key: '#7c5cff', label: '暮光紫' },
-  { key: '#ff7043', label: '暖阳橙' },
-  { key: '#e8436b', label: '樱花粉' },
-];
-
+const active = computed(() => resolveAccent(app.settings.accent));
 const size = ref(app.settings.lyricSize);
 
-function setColor(c) {
-  app.updateSettings({ accent: c });
-  app.applyAccent();
-}
+watch(
+  () => app.settings.lyricSize,
+  (v) => {
+    size.value = v;
+  }
+);
 
-function set(patch) {
-  app.updateSettings(patch);
+function setColor(key) {
+  app.updateSettings({ accent: key });
+  app.applyAccent();
 }
 
 function toggleDark(v) {
@@ -38,20 +35,25 @@ function applySize(v) {
 </script>
 
 <template>
-  <el-dialog v-model="ui.showTheme" title="主题与音效" width="420" align-center append-to-body>
+  <el-dialog v-model="ui.showTheme" title="主题与音效" width="440" align-center append-to-body class="theme-dialog">
     <div class="block">
-      <div class="label">主题色</div>
-      <div class="colors">
+      <div class="label">
+        主题色
+        <span class="value">{{ active.label }}</span>
+      </div>
+      <div class="theme-grid">
         <button
-          v-for="c in colors"
-          :key="c.key"
-          class="color"
-          :class="{ active: (app.settings.accent || '#00d26a') === c.key }"
-          :style="{ background: c.key }"
-          :title="c.label"
-          @click="setColor(c.key)"
+          v-for="t in ACCENT_THEMES"
+          :key="t.key"
+          class="theme-item"
+          :class="{ active: active.key === t.key }"
+          :title="t.label"
+          @click="setColor(t.key)"
         >
-          <Icon v-if="(app.settings.accent || '#00d26a') === c.key" name="check" :size="13" color="#fff" />
+          <span class="theme-swatch" :style="{ background: `linear-gradient(135deg, ${t.from} 0%, ${t.to} 100%)` }">
+            <Icon v-if="active.key === t.key" name="check" :size="13" color="#fff" />
+          </span>
+          <span class="theme-name">{{ t.label }}</span>
         </button>
       </div>
     </div>
@@ -64,88 +66,128 @@ function applySize(v) {
       <el-slider :model-value="size" :min="18" :max="40" :step="1" @input="size = $event" @change="applySize" />
     </div>
 
-    <div class="block row">
-      <div class="label">深色模式</div>
-      <el-switch :model-value="app.settings.appearance === 'dark'" @change="toggleDark" />
-    </div>
-
-    <div class="block row">
-      <div class="label">
-        液态玻璃
-        <span class="value">{{ app.settings.glass ? '半透明毛玻璃' : '纯色界面' }}</span>
+    <div class="rows">
+      <div class="row">
+        <span class="row-label">深色模式</span>
+        <el-switch :model-value="app.settings.appearance === 'dark'" @change="toggleDark" />
       </div>
-      <el-switch :model-value="app.settings.glass" @change="set({ glass: $event })" />
-    </div>
-
-    <div class="block row">
-      <div class="label">深色模式</div>
-      <el-switch :model-value="app.settings.appearance === 'dark'" @change="toggleDark" />
-    </div>
-
-    <div class="block row">
-      <div class="label">
-        液态玻璃
-        <span class="value">{{ app.settings.glass ? '半透明毛玻璃' : '纯色界面' }}</span>
+      <div class="row">
+        <span class="row-label">
+          液态玻璃
+          <i>{{ app.settings.glass ? '半透明毛玻璃' : '纯色界面' }}</i>
+        </span>
+        <el-switch :model-value="app.settings.glass" @change="app.updateSettings({ glass: $event })" />
       </div>
-      <el-switch :model-value="app.settings.glass" @change="set({ glass: $event })" />
+      <div class="row">
+        <span class="row-label">显示歌词翻译</span>
+        <el-switch
+          :model-value="app.settings.showTranslation"
+          @change="app.updateSettings({ showTranslation: $event })"
+        />
+      </div>
+      <div class="row">
+        <span class="row-label">列表显示播放量</span>
+        <el-switch
+          :model-value="app.settings.showPlayCount"
+          @change="app.updateSettings({ showPlayCount: $event })"
+        />
+      </div>
     </div>
 
-    <div class="block row">
-      <div class="label">显示歌词翻译</div>
-      <el-switch :model-value="app.settings.showTranslation" @change="app.updateSettings({ showTranslation: $event })" />
-    </div>
-
-    <div class="block row">
-      <div class="label">列表显示播放量</div>
-      <el-switch :model-value="app.settings.showPlayCount" @change="app.updateSettings({ showPlayCount: $event })" />
-    </div>
-
-    <div class="tip">主题色、深色模式与液态玻璃都会立即生效，更多外观选项在「设置 → 外观与主题」。</div>
+    <div class="tip">所有改动即时生效；背景、字体等更多选项在「设置 → 外观与主题」。</div>
   </el-dialog>
 </template>
 
 <style scoped>
-.block {
-  margin-bottom: 18px;
-}
-.block.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.block + .block {
+  margin-top: 18px;
 }
 .label {
   font-size: 12.5px;
   color: var(--kg-text);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 600;
 }
 .value {
   font-size: 11px;
+  font-weight: 400;
   color: var(--kg-text-3);
 }
-.colors {
-  display: flex;
-  gap: 10px;
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 8px;
 }
-.color {
-  width: 30px;
-  height: 30px;
+.theme-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--kg-line-2);
+  background: var(--kg-panel-2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.theme-item:hover {
+  border-color: var(--kg-accent);
+}
+.theme-item.active {
+  border-color: var(--kg-accent);
+  background: var(--kg-accent-soft);
+}
+.theme-swatch {
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
+  flex: 0 0 22px;
   display: grid;
   place-items: center;
-  border: 2px solid transparent;
-  transition: transform 0.15s ease;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.color:hover {
-  transform: scale(1.06);
+.theme-name {
+  font-size: 11.5px;
+  color: var(--kg-text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.color.active {
-  border-color: #fff;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+.theme-item.active .theme-name {
+  color: var(--kg-text);
+  font-weight: 600;
+}
+.rows {
+  margin-top: 18px;
+  border-top: 1px solid var(--kg-line);
+}
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--kg-line);
+}
+.row:last-child {
+  border-bottom: none;
+}
+.row-label {
+  font-size: 12.5px;
+  color: var(--kg-text);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.row-label i {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--kg-text-3);
 }
 .tip {
+  margin-top: 14px;
   font-size: 11px;
   color: var(--kg-text-3);
   line-height: 1.6;

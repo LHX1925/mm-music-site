@@ -41,7 +41,7 @@ const shortcuts = [
   { icon: 'heart', label: '我喜欢', desc: '红心收藏', path: '/favorite' },
   { icon: 'cloud', label: '音乐云盘', desc: '云端曲库', path: '/cloud' },
   { icon: 'singer', label: '关注歌手', desc: '追更动态', path: '/follow' },
-  { icon: 'download', label: '本地和下载', desc: '离线收听', path: '/local' },
+  { icon: 'download', label: '本地音乐', desc: '本机歌曲', path: '/local' },
   { icon: 'clock', label: '最近播放', desc: '听歌足迹', path: '/recent' },
   { icon: 'vip', label: '会员中心', desc: '领取与记录', path: '/vip' },
   { icon: 'settings', label: '设置', desc: '偏好与系统', path: '/settings' },

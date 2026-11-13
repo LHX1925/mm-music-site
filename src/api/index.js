@@ -305,14 +305,17 @@ export async function audioMatch(arrayBuffer) {
 export async function commentMusic(mixsongid, page = 1, pagesize = 20) {
   const body = await post('/comment/music', {}, { mixsongid, page, pagesize });
   const d = body?.data || body || {};
-  const list = (d.list || []).map(mapComment);
-  const hot = (d.hot_list || []).map(mapComment);
+  // special_id 是发评论 / 查楼中楼必须的资源 id，列表接口在 body.childrenid 里返回
+  const specialId = d.childrenid || d.children_id || d.special_child_id || '';
+  const list = (d.list || []).map((c) => mapComment(c, specialId));
+  const hot = (d.hot_list || []).map((c) => mapComment(c, specialId));
   return {
     total: Number(d.count || d.total || 0),
     hot: hot.length ? hot : list.slice(0, 5),
     list,
     hotwords: (d.hotword_list || []).map((h) => (typeof h === 'string' ? h : h.keyword || h.name)),
     classify: d.classify_list || [],
+    specialId,
   };
 }
 
@@ -325,13 +328,55 @@ export async function commentSend(payload) {
   return post('/comment/music/send', payload);
 }
 
-export async function commentFloor(threadId, page = 1, pagesize = 20) {
-  const body = await post('/comment/floor', {}, { thread_id: threadId, page, pagesize });
+/**
+ * 楼中楼（别人对某条评论的回复）
+ * 服务端要的是 special_id + tid + mixsongid，之前传成了 thread_id，所以永远查不到。
+ */
+export async function commentFloor(specialId, tid, mixsongid, page = 1, pagesize = 20) {
+  const body = await post(
+    '/comment/floor',
+    {},
+    { special_id: specialId, tid, mixsongid, page, pagesize }
+  );
   const d = body?.data || body || {};
-  return { list: (d.list || []).map(mapComment), total: d.count || d.total || 0 };
+  const rows = d.list || d.hot_list || [];
+  return {
+    list: rows.map((c) => mapComment(c, specialId)),
+    total: Number(d.count || d.total || rows.length || 0),
+  };
 }
 
-function mapComment(c = {}) {
+/** 回复某条评论（楼中楼发送） */
+export async function commentFloorSend(payload) {
+  return post('/comment/floor/send', payload);
+}
+
+/** 把评论里的图片字段拆成可用地址：字符串 / 逗号串 / JSON 数组 / 对象数组都能吃 */
+function parsePics(value) {
+  if (!value) return [];
+  let arr = value;
+  if (typeof arr === 'string') {
+    const str = arr.trim();
+    if (!str) return [];
+    if (str.startsWith('[') || str.startsWith('{')) {
+      try {
+        arr = JSON.parse(str);
+      } catch {
+        arr = str.split(',');
+      }
+    } else {
+      arr = str.split(',');
+    }
+  }
+  if (!Array.isArray(arr)) arr = [arr];
+  return arr
+    .map((x) => (typeof x === 'string' ? x : x?.url || x?.pic || x?.image || x?.src || ''))
+    .map((u) => String(u).trim())
+    .filter(Boolean)
+    .map((u) => (u.startsWith('//') ? `https:${u}` : u));
+}
+
+function mapComment(c = {}, specialId = '') {
   const addtime = c.addtime || c.time || c.create_time || '';
   let timeText = '';
   if (addtime) {
@@ -345,24 +390,24 @@ function mapComment(c = {}) {
       timeText = String(addtime).slice(0, 10);
     }
   }
-  const pics = String(c.image || c.pic || c.images || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const pics = parsePics(c.image || c.pic || c.images || c.pic_list);
   let city = c.location || c.ip_location || '';
   if (!city && c.extdata) {
     try {
       city = JSON.parse(c.extdata)?.city || '';
     } catch {}
   }
+  const tid = c.id || c.comment_id || c.tid || '';
   return {
-    id: c.id || c.comment_id || c.tid,
+    id: tid,
+    tid,
+    specialId: specialId || c.special_child_id || '',
     text: c.content || c.text || '',
     user: c.user_name || c.nickname || c.username || '酷狗用户',
     avatar: c.user_pic || c.avatar || c.user_avatar || '',
     time: timeText,
     likes: Number(c.like?.count || c.like_count || c.likes || 0),
-    replies: Number(c.reply_num || c.replies || 0),
+    replies: Number(c.reply_num || c.replies || c.reply_cnt || 0),
     location: city,
     pics,
     vip: Number(c.vip_type || c.vip || 0) > 0,

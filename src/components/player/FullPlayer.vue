@@ -15,7 +15,7 @@ const library = useLibraryStore();
 const ui = useUiStore();
 const app = useAppStore();
 const router = useRouter();
-const { download, openAddToPlaylist } = useSongActions();
+const { openAddToPlaylist } = useSongActions();
 
 const lyricBox = ref(null);
 const dragging = ref(false);
@@ -98,10 +98,6 @@ function toArtist() {
           <button class="act" :class="{ on: liked }" @click="library.toggleFavorite(player.current)">
             <Icon name="heart" :size="18" :filled="liked" />
             <span>喜欢</span>
-          </button>
-          <button class="act" @click="download(player.current)">
-            <Icon name="download" :size="18" />
-            <span>下载</span>
           </button>
           <button class="act" @click="openComments">
             <Icon name="comment" :size="18" />
