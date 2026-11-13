@@ -6,6 +6,7 @@ import Icon from '@/components/common/Icon.vue';
 import { useAppStore } from '@/stores/app';
 import { useUserStore } from '@/stores/user';
 import { useUiStore } from '@/stores/ui';
+import { platformIcon } from '@/utils/brand';
 
 const app = useAppStore();
 const user = useUserStore();
@@ -152,7 +153,10 @@ if (ui.showLogin) loadQr();
     </div>
 
     <div class="head">
-      <div class="title">登录{{ app.platformName }}</div>
+      <div class="title">
+        <img class="title-logo" :src="platformIcon(app.platform)" alt="" draggable="false" />
+        登录{{ app.platformName }}
+      </div>
       <div class="sub">两个平台账号体系独立，登录后可同步歌单、收藏与播放记录</div>
     </div>
 
@@ -216,7 +220,7 @@ if (ui.showLogin) loadQr();
     </div>
 
     <div class="platform-tip">
-      <Icon name="repeat" :size="12" color="#9aa0ab" />
+      <img class="tip-logo" :src="platformIcon(app.platform)" alt="" draggable="false" />
       当前为 {{ app.platformName }}，可在右上角切换
     </div>
   </div>
@@ -255,8 +259,17 @@ if (ui.showLogin) loadQr();
   margin-top: 1px;
 }
 .title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
   font-size: 18px;
   font-weight: 700;
+}
+.title-logo {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  object-fit: cover;
 }
 .sub {
   font-size: 11.5px;
@@ -388,7 +401,13 @@ if (ui.showLogin) loadQr();
   color: var(--kg-text-3);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   justify-content: center;
+}
+.tip-logo {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+  object-fit: cover;
 }
 </style>

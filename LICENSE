@@ -1,30 +1,72 @@
-MIT License
+萌萌音乐学习使用许可协议（MML-1.0）
+MengMeng Music Learning License, Version 1.0
+Copyright (c) 2026 LHX / 宝藏水仙
 
-Copyright (c) 2026 LHX
+【一句话看懂】
+本许可只允许你把本项目用于个人学习、技术研究与交流；任何商业用途一律禁止。
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+────────────────────────────────────────────────────────
+一、授权范围
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+在遵守本协议全部条款的前提下，你被允许：
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+1. 下载、安装并在自己的设备上运行本项目；
+2. 阅读、研究本项目的源代码，学习其实现思路与技术方案；
+3. 在非公开场合修改源代码，用于自己的学习与实践；
+4. 在注明出处的前提下，转载本项目仓库链接并作技术讨论。
 
----
+────────────────────────────────────────────────────────
+二、明确禁止
 
-Commons Clause
+未经著作权人事先书面许可，你不得：
 
-The following rights do not include the right to sell, rent, lease, license for
-a fee, or otherwise commercially exploit the Software or modified versions of
-the Software. For any commercial use, please contact the original author to
-obtain written authorization.
+1. 将本项目（含修改版、衍生版、二次开发版）用于任何商业用途，
+   包括但不限于：销售、收费下载、内置广告、付费会员、
+   捆绑安装、作为商业产品的一部分分发、提供付费技术支持；
+2. 以本项目名义接受任何形式的商业合作、捐赠、赞助或打赏；
+3. 删除、隐藏或修改本项目中的版权声明、作者署名与本许可协议；
+4. 将本项目用于任何违反中华人民共和国法律法规及当地法律法规的行为；
+5. 将本项目用于侵犯他人著作权、传播盗版内容或其他侵权用途。
+
+────────────────────────────────────────────────────────
+三、版权与内容声明
+
+1. 本项目的全部源代码著作权归作者所有，受《中华人民共和国著作权法》保护。
+2. 本项目仅提供播放器客户端与接口调用方式，不存储、不上传、不分发任何音源文件。
+   通过本项目访问的音乐、封面、歌词、MV 等内容，其版权归酷狗音乐及相应版权方所有。
+3. 使用本项目过程中产生的任何版权数据，你应当在 24 小时内自行清除。
+   本项目对这些数据不主张任何权利，也不承担任何责任。
+4. 音乐平台经营不易，请尊重版权、支持正版：喜欢某首作品，请通过官方渠道购买会员或数字专辑。
+
+────────────────────────────────────────────────────────
+四、免责声明
+
+1. 本项目按「现状」提供，不附带任何明示或默示的担保，
+   包括但不限于对适销性、特定用途适用性及不侵权的担保。
+2. 因使用或无法使用本项目而产生的任何直接、间接、特殊、偶然或结果性损害
+   （包括但不限于商誉损失、停工、计算机故障、数据丢失或其他商业损害），
+   由使用者自行承担，作者不承担任何责任。
+3. 使用者应自行判断其所在地区的法律法规要求。在明知或应知当地法律法规
+   不允许的情况下仍然使用本项目所产生的违法违规行为，由使用者自行承担，
+   本项目及作者不承担任何直接、间接、特殊、偶然或结果性责任。
+4. 本项目仅用于对技术可行性的探索与研究，不代表任何官方立场，
+   与酷狗音乐及其关联公司无任何隶属或合作关系。
+
+────────────────────────────────────────────────────────
+五、终止
+
+1. 你违反本协议任一条款时，本许可自动终止，你应立即停止使用并删除本项目的全部副本。
+2. 若官方音乐平台认为本项目不妥，作者将配合更改或移除相关内容；
+   届时本许可对相关部分自动失效。
+
+────────────────────────────────────────────────────────
+六、其他
+
+1. 本协议的订立、效力、解释与争议解决均适用中华人民共和国法律。
+2. 本协议任一条款被认定为无效或不可执行，不影响其余条款的效力。
+3. 作者保留对本协议的最终解释权，并可能在不另行通知的情况下更新协议内容；
+   更新后的协议自仓库发布之日起生效。
+
+────────────────────────────────────────────────────────
+使用本项目即表示你已阅读、理解并同意上述全部条款。
+如果你不同意其中任何一条，请立即停止使用并删除本项目。

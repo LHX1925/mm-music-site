@@ -54,6 +54,10 @@ function isCurrent(s) {
             当前播放 <span class="count">{{ player.queue.length }}</span>
           </button>
           <button class="tab" :class="{ active: tab === 'history' }" @click="tab = 'history'">最近播放</button>
+          <span v-if="tab === 'queue' && player.queueName" class="source" :title="player.queueName">
+            <Icon name="list" :size="11" />
+            {{ player.queueName }}
+          </span>
         </div>
         <div class="search">
           <Icon name="search" :size="13" color="#9aa0ab" />
@@ -112,8 +116,25 @@ function isCurrent(s) {
 }
 .tabs {
   display: flex;
+  align-items: center;
   gap: 16px;
   flex: 1;
+  min-width: 0;
+}
+.source {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 190px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 11px;
+  color: var(--kg-accent-dark);
+  background: var(--kg-accent-soft);
+  border-radius: 9px;
+  padding: 2px 8px;
+  flex: 0 0 auto;
 }
 .tab {
   font-size: 13.5px;

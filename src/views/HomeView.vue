@@ -24,6 +24,8 @@ const { playAll } = useSongActions();
 
 const loading = ref(true);
 const daily = ref([]);
+/** 官方「每日推荐」歌单（不含猜你喜欢 / FM 拼进来的追加曲），打卡按钮播的就是这一份 */
+const officialDaily = ref([]);
 const playlists = ref([]);
 const ranks = ref([]);
 const dailyCover = ref('');
@@ -109,6 +111,7 @@ async function load() {
       rankList(),
     ]);
     const recSongs = rec.status === 'fulfilled' ? rec.value.songs || [] : [];
+    officialDaily.value = recSongs;
     if (rec.status === 'fulfilled') dailyCover.value = rec.value.cover || '';
     const likeSongs = like.status === 'fulfilled' ? like.value || [] : [];
     const fmSongs = fm.status === 'fulfilled' ? fm.value || [] : [];
@@ -185,17 +188,31 @@ async function refreshDaily() {
 onMounted(load);
 watch(() => app.platform, load);
 
-/** 每日推荐旁的播放按钮：整份歌单从第一首开始播 */
-/** 点某一张推荐卡片：从这首开始播，整份列表作为队列 */
+/** 点某一张推荐卡片：从这首开始播，整份列表面板里能看得到 */
 function playDailyAt(i) {
   if (!daily.value.length) return;
-  playAll(daily.value, i);
+  playAll(daily.value, i, '每日推荐');
 }
 
+/** 播放下面「每日推荐」这一整份列表 */
 function playDaily() {
   const list = daily.value;
   if (!list.length) return;
-  playAll(list, 0);
+  playAll(list, 0, '每日推荐');
+}
+
+/**
+ * 打卡卡片上的圆形按钮：播官方每日推荐歌单本身。
+ * 之前这里播的是「每日推荐 + 猜你喜欢 + 私人FM」混合出来的临时池，
+ * 混合池里的歌在页面上找不到对应歌单，看着就像在偷偷播别的列表。
+ */
+function playCheckin() {
+  const list = officialDaily.value.length ? officialDaily.value : daily.value;
+  if (!list.length) {
+    ElMessage({ message: '每日推荐还没加载出来，稍等一下再试', type: 'warning', grouping: true });
+    return;
+  }
+  playAll(list, 0, '每日推荐');
 }
 </script>
 
@@ -222,7 +239,7 @@ function playDaily() {
           <span class="checkin-chip">打卡</span>
           <h3>{{ checkin.title }}</h3>
           <p>{{ checkin.lines[0] }}<br />{{ checkin.lines[1] }}</p>
-          <button class="hero-play" :title="`播放今日推荐（${daily.length || 30} 首）`" @click.stop="playDaily">
+          <button class="hero-play" :title="`播放今日推荐（${officialDaily.length || daily.length || 30} 首）`" @click.stop="playCheckin">
             <Icon name="play" :size="16" color="#fff" filled />
           </button>
         </div>

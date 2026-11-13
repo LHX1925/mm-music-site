@@ -15,6 +15,11 @@ export const useUiStore = defineStore('ui', () => {
   const commentSong = ref(null);
   const showMv = ref(false);
   const mvSong = ref(null);
+  /** 页面功能引导弹窗 */
+  const showGuide = ref(false);
+  const guideName = ref('');
+  /** 首次使用免责声明（未同意前不能操作界面） */
+  const needDisclaimer = ref(false);
   const theme = ref(localStorage.getItem('kg-theme') || 'light');
   const searchKeyword = ref('');
   const toast = ref('');
@@ -42,6 +47,32 @@ export const useUiStore = defineStore('ui', () => {
     showLogin.value = true;
   }
 
+  /** 打开某一页的功能引导（不传则用当前路由） */
+  function openGuide(name = '') {
+    guideName.value = name;
+    showGuide.value = true;
+  }
+
+  function closeGuide() {
+    showGuide.value = false;
+    guideName.value = '';
+  }
+
+  const DISCLAIMER_KEY = 'kg-disclaimer-accepted-v1';
+  function checkDisclaimer() {
+    try {
+      needDisclaimer.value = localStorage.getItem(DISCLAIMER_KEY) !== '1';
+    } catch {
+      needDisclaimer.value = true;
+    }
+  }
+  function acceptDisclaimer() {
+    try {
+      localStorage.setItem(DISCLAIMER_KEY, '1');
+    } catch {}
+    needDisclaimer.value = false;
+  }
+
   function notify(msg) {
     toast.value = msg;
     setTimeout(() => {
@@ -62,6 +93,9 @@ export const useUiStore = defineStore('ui', () => {
     commentSong,
     showMv,
     mvSong,
+    showGuide,
+    guideName,
+    needDisclaimer,
     theme,
     searchKeyword,
     toast,
@@ -69,6 +103,10 @@ export const useUiStore = defineStore('ui', () => {
     setTheme,
     openMv,
     openLogin,
+    openGuide,
+    closeGuide,
+    checkDisclaimer,
+    acceptDisclaimer,
     notify,
     refreshPage,
   };

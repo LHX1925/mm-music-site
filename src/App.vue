@@ -24,6 +24,8 @@ import MvDialog from '@/components/player/MvDialog.vue';
 import BackToTop from '@/components/common/BackToTop.vue';
 import GreetToast from '@/components/common/GreetToast.vue';
 import UpdateDialog from '@/components/common/UpdateDialog.vue';
+import GuideDialog from '@/components/common/GuideDialog.vue';
+import DisclaimerDialog from '@/components/common/DisclaimerDialog.vue';
 import { readLyricCfg } from '@/utils/desktopLyric';
 import { pickGreeting, playGreeting, readLastGreeting, saveLastGreeting } from '@/utils/greeting';
 
@@ -35,6 +37,9 @@ const player = usePlayerStore();
 const vip = useVipStore();
 const update = useUpdateStore();
 const route = useRoute();
+
+// 首次启动先看免责声明：尽早判断，避免内容先闪一下再被盖住
+ui.checkDisclaimer();
 
 const maximized = ref(false);
 /** 启动问候语（语音 + 气泡），只在本进程首次挂载时触发一次 */
@@ -56,6 +61,38 @@ if (typeof window !== 'undefined') {
 let tickTimer = null;
 let offPlayerCmd = null;
 let offUpdate = [];
+
+/** 已经看过引导的页面（首次进入每个页面各弹一次，之后可用右上角 ? 手动再看） */
+const GUIDE_SEEN_KEY = 'kg-guide-seen-v1';
+const seenGuides = ref((() => {
+  try {
+    const arr = JSON.parse(localStorage.getItem(GUIDE_SEEN_KEY) || '[]');
+    return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+})());
+
+function maybeGuide(name) {
+  if (!app.settings.guideOn) return;
+  if (!name || AUX_ROUTE_NAMES.includes(name)) return;
+  if (ui.needDisclaimer) return;
+  if (seenGuides.value.includes(name)) return;
+  seenGuides.value = [...seenGuides.value, name];
+  try {
+    localStorage.setItem(GUIDE_SEEN_KEY, JSON.stringify(seenGuides.value));
+  } catch {}
+  // 等页面内容渲染出来再弹，避免盖住加载骨架
+  setTimeout(() => {
+    if (!ui.needDisclaimer) ui.openGuide(name);
+  }, 700);
+}
+
+/** 免責声明同意后，接着介绍当前页面 */
+function onAcceptDisclaimer() {
+  ui.acceptDisclaimer();
+  setTimeout(() => maybeGuide(route.name), 320);
+}
 
 onMounted(async () => {
   // 桌面歌词 / 托盘面板窗口只负责渲染，不初始化播放器/账号/定时器
@@ -118,6 +155,9 @@ onMounted(async () => {
   tickTimer = setInterval(() => vip.tick(), 60 * 1000);
   vip.tick();
 
+  // 已同意过免责声明的话，进来就介绍当前页面
+  if (!ui.needDisclaimer) maybeGuide(route.name);
+
   window.addEventListener('keydown', onKeydown);
 });
 
@@ -136,6 +176,15 @@ watch(
     await user.refreshProfile();
     await vip.load();
     await Promise.allSettled([library.loadUserPlaylists(), library.loadDownloads()]);
+  }
+);
+
+/** 切页时补一次页面引导（每个页面只在首次进入时弹） */
+watch(
+  () => route.name,
+  (name) => {
+    if (isStandalone.value || app.booting) return;
+    maybeGuide(name);
   }
 );
 
@@ -326,6 +375,8 @@ const showBoot = computed(() => !app.booting && !app.serverReady && !isStandalon
       <CommentDialog />
       <MvDialog />
       <UpdateDialog />
+      <GuideDialog />
+      <DisclaimerDialog v-if="ui.needDisclaimer" @accept="onAcceptDisclaimer" />
       <GreetToast :item="greetItem" @close="greetItem = null" />
 
       <transition name="fade">
@@ -361,7 +412,7 @@ const showBoot = computed(() => !app.booting && !app.serverReady && !isStandalon
   z-index: 1;
   box-shadow: inset 0 0 0 1px rgba(15, 20, 30, 0.08);
 }
-:global([data-bg='on']) .app-window {
+:root[data-bg='on'] .app-window {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 .app-window.maximized {

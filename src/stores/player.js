@@ -84,6 +84,8 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   const queue = ref([]);
+  /** 当前队列来源名（每日推荐 / 某张歌单 / 某个榜单），队列面板里展示，方便追溯在播什么 */
+  const queueName = ref('');
   const index = ref(-1);
   const current = ref(null);
   const playing = ref(false);
@@ -480,6 +482,7 @@ export const usePlayerStore = defineStore('player', () => {
     clearAutoSkip();
     if (Array.isArray(list) && list.length) {
       queue.value = list.map((s) => ({ ...s }));
+      if (typeof opts.name === 'string') queueName.value = opts.name;
       const found = queue.value.findIndex((s) => s.hash === song.hash && s.albumAudioId === song.albumAudioId);
       // 传进来的队列里没有这首歌时，插到队首，而不是莫名其妙播第一首
       if (found >= 0) {
@@ -633,10 +636,11 @@ export const usePlayerStore = defineStore('player', () => {
     if (!silent) ElMessage({ message: `已添加 ${add.length} 首到播放列表`, type: 'success', grouping: true });
   }
 
-  function playAll(list, startIndex = 0) {
+  function playAll(list, startIndex = 0, name = '') {
     if (!list?.length) return;
     clearAutoSkip();
     queue.value = list.map((s) => ({ ...s }));
+    queueName.value = name || '';
     index.value = startIndex;
     current.value = { ...queue.value[startIndex] };
     recordHistory(current.value);
@@ -663,6 +667,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   function clearQueue() {
     queue.value = [];
+    queueName.value = '';
     index.value = -1;
     current.value = null;
     audio?.pause();
@@ -753,6 +758,7 @@ export const usePlayerStore = defineStore('player', () => {
   return {
     audio,
     queue,
+    queueName,
     index,
     current,
     playing,

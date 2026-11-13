@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import Icon from '@/components/common/Icon.vue';
 import VipBadge from '@/components/common/VipBadge.vue';
@@ -24,6 +24,7 @@ const vip = useVipStore();
 const ui = useUiStore();
 const update = useUpdateStore();
 const router = useRouter();
+const route = useRoute();
 
 const DEFAULT_AVATAR = '/assets/profile.jpg';
 const info = ref({});
@@ -152,6 +153,16 @@ const accentOptions = [
 
 function set(patch) {
   return app.updateSettings(patch);
+}
+
+/** 立即查看当前页面的功能引导 */
+function showGuideNow() {
+  ui.openGuide(route.name);
+}
+
+/** 重新打开免责声明（只读查看，同意后仍写同一个标记） */
+function reopenDisclaimer() {
+  ui.needDisclaimer = true;
 }
 
 async function setAccent(v) {
@@ -837,7 +848,23 @@ onMounted(async () => {
               <div class="about-row"><span class="k">更新方式</span><span class="v">{{ update.portable ? '便携版 · 自动替换并重启' : '安装版 · 启动安装程序覆盖升级' }}</span></div>
               <div class="about-row"><span class="k">技术栈</span><span class="v">Vue 3 / Vite / Electron / Pinia / Element Plus</span></div>
               <div class="about-row"><span class="k">数据来源</span><span class="v">本地运行的 KuGouMusicApi（标准版 + 概念版双实例）</span></div>
+              <div class="about-row"><span class="k">使用许可</span><span class="v">MML-1.0 · 仅供学习研究，禁止任何商业使用</span></div>
             </div>
+            <div class="guide-row">
+              <div class="guide-row-text">
+                <b>页面引导</b>
+                <span>进入一个没去过的页面时，用萌小萌的弹窗介绍这一页能做什么</span>
+              </div>
+              <SettingToggle
+                :model-value="app.settings.guideOn !== false"
+                on-label="已开启"
+                off-label="已关闭"
+                @change="set({ guideOn: $event })"
+              />
+              <button class="mini-btn" @click="showGuideNow">查看当前页引导</button>
+              <button class="mini-btn ghost" @click="reopenDisclaimer">免责声明</button>
+            </div>
+
             <div class="disclaimer">
               <strong>免责声明</strong>
               <p>
@@ -1405,6 +1432,33 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
   color: var(--kg-text);
+}
+.guide-row {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--kg-panel-2);
+  border: 1px solid var(--kg-line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.guide-row-text {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.guide-row-text b {
+  font-size: 12.5px;
+  color: var(--kg-text);
+}
+.guide-row-text span {
+  font-size: 11.5px;
+  color: var(--kg-text-3);
+  line-height: 1.6;
 }
 .disclaimer {
   margin-top: 14px;

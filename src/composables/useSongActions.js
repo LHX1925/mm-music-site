@@ -18,8 +18,8 @@ export function useSongActions() {
     player.play(song, list);
   }
 
-  function playAll(list, startIndex = 0) {
-    player.playAll(list, startIndex);
+  function playAll(list, startIndex = 0, name = '') {
+    player.playAll(list, startIndex, name);
   }
 
   function toggleFav(song) {

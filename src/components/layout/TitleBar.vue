@@ -6,6 +6,7 @@ import { usePlayerStore } from '@/stores/player';
 import Icon from '@/components/common/Icon.vue';
 import { useAppStore } from '@/stores/app';
 import { useUiStore } from '@/stores/ui';
+import { platformIcon } from '@/utils/brand';
 
 const app = useAppStore();
 const ui = useUiStore();
@@ -225,6 +226,9 @@ function refresh() {
 function togglePlatform() {
   app.togglePlatform();
 }
+function openGuide() {
+  ui.openGuide(route.name);
+}
 async function min() {
   window.kg?.minimize();
 }
@@ -365,12 +369,15 @@ function openVip() {
     </div>
 
     <div class="right-area">
-      <button class="platform-pill" :class="{ lite: app.platform === 'lite' }" title="切换标准版 / 概念版" @click="togglePlatform">
-        <i class="dot" />
+      <button class="platform-pill" :class="{ lite: app.platform === 'lite' }" :title="`当前 ${app.platform === 'lite' ? '酷狗音乐概念版' : '酷狗音乐'}，点击切换`" @click="togglePlatform">
+        <img class="plat-logo" :src="platformIcon(app.platform)" alt="" draggable="false" />
         <span>{{ app.platform === 'lite' ? '概念版' : '标准版' }}</span>
         <Icon name="repeat" :size="12" />
       </button>
 
+      <button class="circle-btn" title="页面功能引导" @click="openGuide">
+        <Icon name="question" :size="17" color="#4b515c" />
+      </button>
       <button class="circle-btn" title="听歌识曲" @click="router.push('/discover?tab=identify')">
         <Icon name="note" :size="18" color="#4b515c" />
       </button>
@@ -738,18 +745,17 @@ function openVip() {
 .platform-pill:hover {
   background: var(--kg-hover);
 }
-.platform-pill .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--kg-accent);
+.plat-logo {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  object-fit: cover;
+  flex: 0 0 18px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 .platform-pill.lite {
   background: var(--kg-accent-soft);
   color: var(--kg-accent-dark);
-}
-.platform-pill.lite .dot {
-  background: #00c2a8;
 }
 .circle-btn {
   width: 32px;

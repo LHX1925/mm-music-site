@@ -66,7 +66,7 @@ async function loadMore() {
 
 function playAllSongs() {
   if (!songs.value.length) return;
-  playAll(songs.value, 0);
+  playAll(songs.value, 0, detail.value?.name || '歌单');
 }
 
 function downloadAll() {

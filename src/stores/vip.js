@@ -32,6 +32,8 @@ export const useVipStore = defineStore('vip', () => {
   const claiming = ref(false);
   const upgrading = ref(false);
   const lastClaim = ref(null);
+  /** 领取记录对应的日期，跨天要靠它触发刷新 */
+  const recordsDate = ref('');
 
   const busiList = computed(() => (Array.isArray(info.value.busi_vip) ? info.value.busi_vip : []));
 
@@ -126,7 +128,11 @@ export const useVipStore = defineStore('vip', () => {
     try {
       const [v, r] = await Promise.allSettled([unionVip(app.platform), monthVipRecord(app.platform)]);
       if (v.status === 'fulfilled') info.value = v.value || {};
-      if (r.status === 'fulfilled') records.value = r.value || [];
+      if (r.status === 'fulfilled') {
+        records.value = r.value || [];
+        // 只有真正拿到记录才记下日期，接口失败时下次 tick 还会再拉一次
+        recordsDate.value = todayStr();
+      }
     } finally {
       loading.value = false;
     }
@@ -225,24 +231,66 @@ export const useVipStore = defineStore('vip', () => {
   /**
    * 自动领取：由全局定时器每分钟调用
    * 条件：已开启、已登录、当前时间 >= 设定时间、今天还没领过
+   *
+   * 之前两个毛病，都会表现成「到点了没自动领，重启才领」：
+   * 1. 每天只在第一次尝试时写一次状态，失败后当天再也不重试
+   *    （零点刚过服务端还没换天，第一次请求必然会失败）；
+   * 2. 领取记录只在启动 / 手动刷新时才拉，跨天后 claimedToday 还是旧数据。
+   * 现在改成：跨天先刷新记录，失败按间隔重试，成功后当天不再重复请求。
    */
+  const AUTO_KEY = 'kg-auto-vip-v2';
+  /** 最多重试次数，避免接口异常时一直打 */
+  const MAX_TRIES = 40;
+
+  function readAutoState() {
+    try {
+      const all = JSON.parse(localStorage.getItem(AUTO_KEY) || '{}') || {};
+      return all[app.platform] || {};
+    } catch {
+      return {};
+    }
+  }
+  function writeAutoState(patch) {
+    try {
+      const all = JSON.parse(localStorage.getItem(AUTO_KEY) || '{}') || {};
+      all[app.platform] = { ...(all[app.platform] || {}), ...patch };
+      localStorage.setItem(AUTO_KEY, JSON.stringify(all));
+    } catch {}
+  }
+
   async function tick() {
     const cfg = app.settings.autoVip || {};
     if (!cfg.enabled || !user.isLogin) return;
     const now = new Date();
+    const today = todayStr(now);
     const [h, m] = String(cfg.time || '09:00').split(':').map(Number);
     const due = now.getHours() * 60 + now.getMinutes() >= (h || 0) * 60 + (m || 0);
     if (!due) return;
-    const key = `kg-auto-vip-${app.platform}`;
-    const state = JSON.parse(localStorage.getItem(key) || '{}');
-    if (state.date === todayStr(now)) return;
+
+    // 跨天必须重新拉一次记录，否则 claimedToday 还在拿昨天的数据
+    if (recordsDate.value !== today) {
+      await load().catch(() => {});
+      recordsDate.value = today;
+    }
+
+    const st = readAutoState();
+    const sameDay = st.date === today;
+    if (sameDay && st.ok) return;
     if (claimedToday.value) {
-      localStorage.setItem(key, JSON.stringify({ date: todayStr(now), ok: true, skipped: true }));
+      writeAutoState({ date: today, ok: true, skipped: true });
       return;
     }
-    localStorage.setItem(key, JSON.stringify({ date: todayStr(now), ok: false, trying: true }));
-    const ok = await claim(todayStr(now), true);
-    localStorage.setItem(key, JSON.stringify({ date: todayStr(now), ok }));
+
+    const tries = sameDay ? Number(st.tries) || 0 : 0;
+    if (tries >= MAX_TRIES) return;
+    // 失败后按间隔重试：前 3 次 2 分钟，之后 10 分钟，再之后半小时
+    const gapMs = (tries <= 3 ? 2 : tries <= 6 ? 10 : 30) * 60 * 1000;
+    const lastTry = sameDay ? Number(st.lastTry) || 0 : 0;
+    if (lastTry && Date.now() - lastTry < gapMs) return;
+
+    writeAutoState({ date: today, ok: false, tries: tries + 1, lastTry: Date.now() });
+    const ok = await claim(today, true);
+    writeAutoState({ date: today, ok, tries: tries + 1, lastTry: Date.now() });
     if (ok) {
       ElMessage({ message: '每日会员已自动领取', type: 'success', duration: 2600 });
       if (cfg.upgrade && app.platform === 'lite') await upgrade();

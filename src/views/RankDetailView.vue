@@ -69,7 +69,7 @@ watch(rankid, load);
             <span v-if="info?.updateFrequency">{{ info.updateFrequency }}</span>
           </div>
           <div class="bacts">
-            <button class="btn primary" @click="playAll(songs, 0)">
+            <button class="btn primary" @click="playAll(songs, 0, info?.name || '排行榜')">
               <Icon name="play" :size="14" color="#fff" filled /> 播放全部
             </button>
             <button class="btn" @click="router.push('/rank')">全部榜单</button>

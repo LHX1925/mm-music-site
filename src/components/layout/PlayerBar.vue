@@ -119,35 +119,44 @@ const qualityOptions = [
         <img v-if="cover" :src="cover" alt="" />
         <div v-else class="cover-empty"><Icon name="note" :size="18" color="#b6bbc4" /></div>
       </div>
+      <!-- 「歌名 - 歌手」单行 + 下面一行放徽标和操作：
+           徽标不再插在歌名后面，窄窗口也不会把歌名挤成一个「我…」 -->
       <div class="meta">
         <div class="title-row">
           <span
-            class="song-name ellipsis"
+            class="song-name"
             :title="player.current?.name ? `点击搜索「${player.current.name}」` : ''"
             @click="searchSong"
           >{{ player.current?.name || '听我想听' }}</span>
+          <span
+            v-if="player.current?.singer"
+            class="song-singer"
+            :title="player.current.singer"
+            @click="toArtist"
+          > - {{ player.current.singer }}</span>
+        </div>
+        <div class="sub-row">
           <template v-if="player.current">
             <span v-if="songFlagsOf(player.current).isOriginal" class="badge-orig" title="原创作品">原创</span>
             <span v-if="songFlagsOf(player.current).isVip" class="badge-vip" title="VIP 专享">VIP</span>
             <span v-if="songFlagsOf(player.current).hasMv" class="mv-tag" title="有 MV">MV</span>
+            <span v-if="player.trial" class="trial-tag">试听</span>
           </template>
-          <span v-if="player.trial" class="trial-tag">试听</span>
+          <div class="quick-actions">
+            <button class="mini-btn" :class="{ liked }" title="喜欢" @click="library.toggleFavorite(player.current)">
+              <Icon name="heart" :size="15" :filled="liked" :color="liked ? 'var(--kg-accent)' : 'currentColor'" />
+            </button>
+            <button class="mini-btn" title="添加到歌单" @click="openAddToPlaylist(player.current)">
+              <Icon name="plus" :size="15" />
+            </button>
+            <button class="mini-btn comment-btn" title="评论" @click="openComments">
+              <Icon name="comment" :size="14" />
+            </button>
+            <button class="mini-btn opt" title="下载" @click="download(player.current)">
+              <Icon name="download" :size="14" />
+            </button>
+          </div>
         </div>
-        <div class="singer ellipsis" @click="toArtist">{{ player.current?.singer || '酷狗音乐' }}</div>
-      </div>
-      <div class="quick-actions">
-        <button class="mini-btn" :class="{ liked }" title="喜欢" @click="library.toggleFavorite(player.current)">
-          <Icon name="heart" :size="16" :filled="liked" :color="liked ? 'var(--kg-accent)' : 'currentColor'" />
-        </button>
-        <button class="mini-btn" title="添加到歌单" @click="openAddToPlaylist(player.current)">
-          <Icon name="plus" :size="16" />
-        </button>
-        <button class="mini-btn comment-btn" title="评论" @click="openComments">
-          <Icon name="comment" :size="15" />
-        </button>
-        <button class="mini-btn opt" title="下载" @click="download(player.current)">
-          <Icon name="download" :size="15" />
-        </button>
       </div>
     </div>
 
@@ -157,9 +166,9 @@ const qualityOptions = [
           <Icon :name="player.mode === 'single' ? 'repeat-one' : player.mode === 'shuffle' ? 'shuffle' : 'repeat'" :size="16" />
         </button>
         <button class="ctl" title="上一首" @click="player.prev()"><Icon name="prev" :size="17" /></button>
-        <button class="play-btn" :title="player.playing ? '暂停' : '播放'" @click="player.toggle()">
-          <Icon v-if="player.loading" name="refresh" :size="18" color="#fff" class="spin" />
-          <Icon v-else :name="player.playing ? 'pause' : 'play'" :size="18" color="#fff" :filled="!player.playing" />
+        <button class="ctl play-btn" :title="player.playing ? '暂停' : '播放'" @click="player.toggle()">
+          <Icon v-if="player.loading" name="refresh" :size="18" class="spin" />
+          <Icon v-else :name="player.playing ? 'pause' : 'play'" :size="19" />
         </button>
         <button class="ctl" title="下一首" @click="player.next()"><Icon name="next" :size="17" /></button>
         <button class="ctl" title="播放列表" @click="ui.showQueue = !ui.showQueue"><Icon name="list" :size="16" /></button>
@@ -311,28 +320,50 @@ const qualityOptions = [
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
+/* 歌名与歌手同一行，像「甲乙丙丁 - 李佳薇」那样一直显示完整 */
 .title-row {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: baseline;
+  gap: 0;
   min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
 }
 .song-name {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  flex: 0 1 auto;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.song-name:hover {
+.song-singer {
+  flex: 0 1 auto;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--kg-text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.song-name:hover,
+.song-singer:hover {
   color: var(--kg-accent-dark);
 }
-.singer {
-  font-size: 11.5px;
-  color: var(--kg-text-3);
-  margin-top: 3px;
-  cursor: pointer;
-  max-width: 100%;
+.sub-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 20px;
+  overflow: hidden;
 }
 .trial-tag {
   font-size: 9px;
@@ -344,14 +375,11 @@ const qualityOptions = [
   line-height: 13px;
   flex: 0 0 auto;
 }
-.singer:hover {
-  color: var(--kg-text-2);
-}
 .quick-actions {
   display: flex;
   align-items: center;
-  gap: 0;
-  margin-left: 2px;
+  gap: 1px;
+  margin-left: 3px;
   flex: 0 0 auto;
 }
 .mini-btn {
@@ -406,20 +434,22 @@ const qualityOptions = [
   font-weight: 600;
   line-height: 1;
 }
+/* 播放/暂停跟上一首、下一首同款：纯图标按钮，不再是一个实心彩色圆 */
 .play-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--kg-accent);
+  background: transparent;
+  color: var(--kg-text);
+  box-shadow: none;
   display: grid;
   place-items: center;
-  box-shadow: 0 4px 12px rgba(var(--kg-accent-rgb), 0.28);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease;
   flex: 0 0 auto;
 }
 .play-btn:hover {
-  transform: scale(1.04);
-  filter: brightness(1.04);
+  background: var(--kg-hover);
+  color: var(--kg-text);
 }
 .spin {
   animation: spin 0.9s linear infinite;

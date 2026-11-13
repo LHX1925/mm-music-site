@@ -208,13 +208,18 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  background: linear-gradient(120deg, #fff4dd, #ffe9c2 45%, #fdf1f6);
-  border: 1px solid #f3e2c2;
+  /* 米金渐变稍微压深一点，文字才能压得住，不会一片「过曝」的白 */
+  background: linear-gradient(120deg, #fbeed8, #f8dfb2 46%, #f4e3ea);
+  border: 1px solid #ead6b2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 10px 26px rgba(180, 140, 70, 0.1);
   margin-bottom: 16px;
+  color: #5a3d10;
 }
-:global([data-theme='dark']) .hero {
-  background: linear-gradient(120deg, #241d12, #2a2116 45%, #241a20);
+:root[data-theme='dark'] .hero {
+  background: linear-gradient(120deg, #241d12, #2a2116 46%, #241a20);
   border-color: #3a2f1e;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 12px 30px rgba(0, 0, 0, 0.35);
+  color: #f1dcae;
 }
 .hero-bg {
   position: absolute;
@@ -223,7 +228,10 @@ onMounted(() => {
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 196, 84, 0.5), transparent 65%);
+  background: radial-gradient(circle, rgba(255, 196, 84, 0.32), transparent 66%);
+}
+:root[data-theme='dark'] .hero-bg {
+  background: radial-gradient(circle, rgba(255, 186, 84, 0.18), transparent 68%);
 }
 .hero-content {
   position: relative;
@@ -236,12 +244,12 @@ onMounted(() => {
   height: 24px;
   padding: 0 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.82);
   color: #7a4d00;
   font-size: 11px;
   font-weight: 600;
 }
-:global([data-theme='dark']) .tag {
+:root[data-theme='dark'] .tag {
   background: rgba(255, 255, 255, 0.08);
   color: #f0c674;
 }
@@ -250,11 +258,18 @@ onMounted(() => {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.5px;
+  color: #4a3109;
+}
+:root[data-theme='dark'] .hero h1 {
+  color: #f6e2b8;
 }
 .desc {
   margin: 0 0 16px;
   font-size: 12.5px;
-  color: var(--kg-text-2);
+  color: #8a6a33;
+}
+:root[data-theme='dark'] .desc {
+  color: rgba(242, 218, 173, 0.82);
 }
 .hero-actions {
   display: flex;
@@ -265,26 +280,56 @@ onMounted(() => {
   height: 36px;
   padding: 0 16px;
   border-radius: 18px;
-  border: 1px solid var(--kg-line-2);
-  background: var(--kg-surface);
+  border: 1px solid rgba(196, 158, 90, 0.45);
+  background: rgba(255, 255, 255, 0.86);
+  color: #6b4c18;
   font-size: 12.5px;
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover {
+  background: #ffffff;
+}
+:root[data-theme='dark'] .btn {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(240, 214, 165, 0.26);
+  color: #efd8ab;
+}
+:root[data-theme='dark'] .btn:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 .btn.primary {
-  background: linear-gradient(135deg, #ffc457, #f5a623);
+  background: linear-gradient(135deg, #f6b83c, #e08f18);
   border-color: transparent;
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 8px 20px rgba(245, 166, 35, 0.3);
+  box-shadow: 0 8px 20px rgba(224, 143, 24, 0.28);
 }
+.btn.primary:hover {
+  filter: brightness(1.04);
+}
+/* 已领取 / 领取中：不再用半透明「糊白」，换成低饱和的实色，字看得清 */
 .btn.primary:disabled {
-  opacity: 0.6;
+  background: #ecdfc6;
+  color: #9a855c;
   box-shadow: none;
+  opacity: 1;
+  cursor: default;
+}
+:root[data-theme='dark'] .btn.primary:disabled {
+  background: rgba(255, 255, 255, 0.09);
+  color: rgba(242, 218, 173, 0.5);
 }
 .btn.ghost {
   background: transparent;
+}
+.btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+:root[data-theme='dark'] .btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 .tag-icon {
   height: 14px;
@@ -359,7 +404,7 @@ onMounted(() => {
   color: var(--kg-accent-dark);
   font-weight: 700;
 }
-:global([data-theme='dark']) .day.claimed {
+:root[data-theme='dark'] .day.claimed {
   background: rgba(0, 210, 106, 0.22);
   color: #6ff0b0;
 }

@@ -11,6 +11,7 @@ import { useLibraryStore } from '@/stores/library';
 import { useVipStore } from '@/stores/vip';
 import { useUiStore } from '@/stores/ui';
 import { formatCount } from '@/utils/format';
+import { platformIcon } from '@/utils/brand';
 
 const app = useAppStore();
 const user = useUserStore();
@@ -106,7 +107,10 @@ onMounted(refresh);
           <h1>{{ user.isLogin ? user.nickname : '未登录' }}</h1>
           <!-- 会员图标横排在名字右边 -->
           <VipBadge v-if="user.isLogin && vip.badges.length" :size="16" />
-          <span class="plat-chip">{{ app.platformName }}</span>
+          <span class="plat-chip">
+            <img :src="platformIcon(app.platform)" alt="" draggable="false" />
+            {{ app.platformName }}
+          </span>
         </div>
         <p class="sub">
           <template v-if="user.isLogin">
@@ -121,7 +125,8 @@ onMounted(refresh);
           <template v-else>
             <button class="btn" @click="router.push('/vip')"><Icon name="crown" :size="15" /> 会员中心</button>
             <button class="btn ghost" :disabled="platformSwitching" @click="switchPlatform">
-              <Icon name="repeat" :size="14" /> 切换到{{ app.platform === 'std' ? '概念版' : '标准版' }}
+              <img class="btn-plat" :src="platformIcon(app.platform === 'std' ? 'lite' : 'std')" alt="" draggable="false" />
+              切换到{{ app.platform === 'std' ? '概念版' : '标准版' }}
             </button>
             <button class="btn danger" @click="logout"><Icon name="logout" :size="15" /> 退出登录</button>
           </template>
@@ -285,11 +290,26 @@ onMounted(refresh);
   font-weight: 600;
 }
 .plat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 11px;
   color: var(--kg-text-3);
   border: 1px dashed var(--kg-line-2);
   border-radius: 10px;
-  padding: 2px 8px;
+  padding: 2px 8px 2px 4px;
+}
+.plat-chip img {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.btn-plat {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  object-fit: cover;
 }
 .sub {
   margin: 8px 0 14px;

@@ -85,6 +85,8 @@ export const useAppStore = defineStore('app', () => {
     glassBlur: saved.glassBlur ?? 18,
     // 每日自动领取会员
     autoVip: saved.autoVip || { enabled: false, time: '09:00', upgrade: false },
+    /** 进入页面时自动弹出功能引导（可在设置里关闭） */
+    guideOn: saved.guideOn ?? true,
   });
 
   const platformLabel = computed(() => (platform.value === 'lite' ? '概念版' : '标准版'));
