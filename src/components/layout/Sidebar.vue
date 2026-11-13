@@ -278,6 +278,14 @@ function onUserCommand(cmd) {
   justify-content: center;
   padding: 16px 0 10px;
   gap: 0;
+  width: 100%;
+}
+/* 收起态：el-dropdown 默认 inline-block，会收缩到内容宽度把头像挤到左边，
+   必须让它铺满并居中，头像才能真正水平居中 */
+.sidebar.collapsed :deep(.el-dropdown) {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 /* 收起态：头像整体水平居中（含包裹层），避免偏左 */
 .sidebar.collapsed .user-ava {
