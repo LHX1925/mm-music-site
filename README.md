@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="萌萌音乐 LOGO" width="320">
+  <img src="build/icon.png" alt="萌萌音乐 LOGO" width="180">
 </p>
 
 <h1 align="center">萌萌音乐 · MengMeng Music</h1>
@@ -8,7 +8,7 @@
   <img src="https://img.shields.io/badge/版本-1.2.5-brightgreen" alt="version">
   <img src="https://img.shields.io/badge/平台-Windows%20%2F%20Electron-blue" alt="platform">
   <img src="https://img.shields.io/badge/许可证-MML--1.0-green" alt="license">
-  <img src="https://img.shields.io/badge/主页-moin.shrtxs.cn-important" alt="homepage">
+  <a href="https://moin.shrtxs.cn/"><img src="https://img.shields.io/badge/%E5%89%8D%E5%BE%80%E9%A1%B9%E7%9B%AE%E4%B8%BB%E9%A1%B5-%E7%82%B9%E5%87%BB%E8%B7%B3%E8%BD%AC-00d26a" alt="前往项目主页"></a>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  🔗 <b>项目主页 / 下载</b>：<a href="https://moin.shrtxs.cn/">https://moin.shrtxs.cn/</a>
+  <a href="https://moin.shrtxs.cn/"><img src="https://img.shields.io/badge/%E5%89%8D%E5%BE%80%E9%A1%B9%E7%9B%AE%E4%B8%BB%E9%A1%B5-%E7%82%B9%E5%87%BB%E8%B7%B3%E8%BD%AC-00d26a?style=for-the-badge" alt="前往项目主页"></a>
 </p>
 
 ---
@@ -154,7 +154,7 @@
 ## 🚀 快速开始
 
 ### 方式一：下载安装包（推荐）
-前往 **项目主页 [https://moin.shrtxs.cn/](https://moin.shrtxs.cn/)** 下载最新版安装包：
+前往项目主页下载最新版安装包（点击本文档顶部的「前往项目主页」按钮）：
 
 | 文件 | 说明 |
 | --- | --- |
@@ -278,5 +278,5 @@ Electron 主进程
 ---
 
 <p align="center">
-  Made with ♪ by <b>LHX / 宝藏水仙</b> · 项目主页 <a href="https://moin.shrtxs.cn/">moin.shrtxs.cn</a>
+  Made with ♪ by <b>LHX / 宝藏水仙</b> · <a href="https://moin.shrtxs.cn/"><img src="https://img.shields.io/badge/%E5%89%8D%E5%BE%80%E9%A1%B9%E7%9B%AE%E4%B8%BB%E9%A1%B5-%E7%82%B9%E5%87%BB%E8%B7%B3%E8%BD%AC-00d26a" alt="前往项目主页"></a>
 </p>
