@@ -126,8 +126,8 @@ onMounted(async () => {
       </div>
       <div v-else class="empty">
         <Icon name="download" :size="34" color="#c6cbd4" />
-        <div class="empty-title">这里显示历史下载的歌曲文件</div>
-        <div class="empty-sub">新版本不再提供在线下载，已有的文件仍可在这里播放或清理</div>
+        <div class="empty-title">这里显示已保存到本机的歌曲文件</div>
+        <div class="empty-sub">可以在文件夹中直接管理这些文件</div>
       </div>
     </template>
   </div>

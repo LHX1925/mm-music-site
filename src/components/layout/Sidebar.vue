@@ -44,7 +44,7 @@ const navs = [
   { icon: 'vip', label: '会员中心', path: '/vip', badge: () => (vip.claimedToday ? '' : '可领') },
   { icon: 'heart', label: '喜欢', path: '/favorite', count: () => library.favorites.length },
   { icon: 'clock', label: '最近播放', path: '/recent' },
-  { icon: 'download', label: '本地音乐', path: '/local' },
+  { icon: 'folder', label: '本地音乐', path: '/local' },
   { icon: 'list', label: '试听列表', path: '/preview', count: () => library.preview.length },
 ];
 
