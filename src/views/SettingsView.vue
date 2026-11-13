@@ -264,11 +264,6 @@ async function saveProxy() {
   ElMessage.success('代理已保存，重启接口服务后生效');
 }
 
-async function chooseDownloadDir() {
-  const dir = await window.kg?.chooseFolder(app.settings.downloadDir);
-  if (dir) await set({ downloadDir: dir });
-}
-
 async function chooseLocalDir() {
   const dir = await window.kg?.chooseFolder();
   if (!dir) return;
