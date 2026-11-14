@@ -456,24 +456,21 @@ function onQuality(key) {
   font-weight: 600;
   line-height: 1;
 }
-/* 播放/暂停：主按钮用实心主题色圆 + 白图标，浅色/深色下都一眼可辨 */
+/* 播放/暂停：与上一首/下一首同款纯图标按钮，不套主题色背景 */
 .play-btn {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--kg-accent);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(var(--kg-accent-rgb), 0.35);
+  background: var(--kg-panel);
+  color: var(--kg-text-2);
   display: grid;
   place-items: center;
-  transition: filter 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, color 0.15s ease;
   flex: 0 0 auto;
 }
 .play-btn:hover {
-  filter: brightness(0.95);
-}
-.play-btn:active {
-  transform: scale(0.94);
+  background: var(--kg-hover);
+  color: var(--kg-text);
 }
 .spin {
   animation: spin 0.9s linear infinite;

@@ -310,16 +310,7 @@ html[data-theme='dark'] .tool:hover {
 .tool:active {
   transform: scale(0.92);
 }
-/* 暂停/播放主按钮：用主题色实心 + 白图标，深浅主题下都清晰可见，
-   不再用极淡的灰圆（浅色桌面下会糊成一片、几乎看不见） */
-.tool.main {
-  background: var(--kg-accent);
-  color: #fff;
-}
-html[data-theme='dark'] .tool.main {
-  background: var(--kg-accent);
-  color: #fff;
-}
+/* 暂停/播放主按钮：与相邻切歌键同款纯图标，不套主题色背景，深浅主题都清晰可见 */
 .tool.on {
   background: var(--kg-accent);
   color: #fff;

@@ -189,15 +189,7 @@ html[data-theme='dark'] .btn:hover {
   background: rgba(255, 255, 255, 0.18);
   color: #fff;
 }
-.btn.play {
-  background: var(--kg-accent);
-  color: #fff;
-}
-.btn.play:hover {
-  background: var(--kg-accent-dark);
-  color: #fff;
-  filter: brightness(1.04);
-}
+/* 播放/暂停与上一首/下一首同款纯图标按钮，不套主题色背景，深浅主题都清晰 */
 .bar.short {
   gap: 6px;
   padding: 0 6px;
